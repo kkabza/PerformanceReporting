@@ -1,0 +1,44 @@
+<!-- Header -->
+<header class="bg-white shadow-sm lg:pl-64">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Mobile menu button -->
+            <div class="flex lg:hidden">
+                <button type="button" class="px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden" onclick="toggleMobileMenu()">
+                    <span class="sr-only">Open sidebar</span>
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Header content -->
+            <div class="flex-1 flex items-center justify-center lg:justify-end">
+                <div class="w-full max-w-lg lg:max-w-xs ml-auto">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input id="search" name="search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Search" type="search">
+                    </div>
+                </div>
+                
+                <!-- Profile dropdown -->
+                <div class="ml-4 flex items-center md:ml-6">
+                    <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <span class="sr-only">View notifications</span>
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    
+                    <!-- Profile dropdown button -->
+                    <div class="ml-3 relative">
+                        <div>
+                            <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" id="user-menu-button">
+                                <span class="sr-only">Open user menu</span>
+                                <i class="fas fa-user-circle text-2xl text-gray-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header> 

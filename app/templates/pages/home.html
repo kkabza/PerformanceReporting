@@ -1,0 +1,306 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+    <!-- Include Sidebar and Header components -->
+    {% include "components/sidebar.html" %}
+    {% include "components/header.html" %}
+    
+    <!-- Main Content -->
+    <main class="lg:pl-64">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Page title -->
+            <div class="py-6">
+                <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+            </div>
+            
+            <!-- Content with constrained width -->
+            <div class="max-w-3xl mx-auto">
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <!-- Active Auctions -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                    <i class="fas fa-gavel text-white"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Active Auctions
+                                        </dt>
+                                        <dd>
+                                            <div class="text-lg font-medium text-gray-900">
+                                                24
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                                    View all<span class="sr-only"> Active Auctions</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Certificates Owned -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                    <i class="fas fa-file-alt text-white"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Certificates Owned
+                                        </dt>
+                                        <dd>
+                                            <div class="text-lg font-medium text-gray-900">
+                                                12
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                                    View all<span class="sr-only"> Certificates Owned</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Investment -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                                    <i class="fas fa-dollar-sign text-white"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Total Investment
+                                        </dt>
+                                        <dd>
+                                            <div class="text-lg font-medium text-gray-900">
+                                                $56,492
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                                    View details<span class="sr-only"> Total Investment</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Auctions Section -->
+                <div class="mt-8">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Upcoming Auctions</h2>
+                    <div class="mt-2 bg-white shadow overflow-hidden sm:rounded-md">
+                        <ul role="list" class="divide-y divide-gray-200">
+                            <!-- Auction 1 -->
+                            <li>
+                                <a href="#" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-medium text-blue-600 truncate">
+                                                Miami-Dade County
+                                            </p>
+                                            <div class="ml-2 flex-shrink-0 flex">
+                                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Starting Soon
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 sm:flex sm:justify-between">
+                                            <div class="sm:flex">
+                                                <p class="flex items-center text-sm text-gray-500">
+                                                    <i class="fas fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    June 1, 2023
+                                                </p>
+                                                <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                                    <i class="fas fa-map-marker-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    Online
+                                                </p>
+                                            </div>
+                                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                                <i class="fas fa-certificate flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                <p>
+                                                    2,456 certificates
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            
+                            <!-- Auction 2 -->
+                            <li>
+                                <a href="#" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-medium text-blue-600 truncate">
+                                                Broward County
+                                            </p>
+                                            <div class="ml-2 flex-shrink-0 flex">
+                                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Registration Open
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 sm:flex sm:justify-between">
+                                            <div class="sm:flex">
+                                                <p class="flex items-center text-sm text-gray-500">
+                                                    <i class="fas fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    June 15, 2023
+                                                </p>
+                                                <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                                    <i class="fas fa-map-marker-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    Online
+                                                </p>
+                                            </div>
+                                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                                <i class="fas fa-certificate flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                <p>
+                                                    1,872 certificates
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            
+                            <!-- Auction 3 -->
+                            <li>
+                                <a href="#" class="block hover:bg-gray-50">
+                                    <div class="px-4 py-4 sm:px-6">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-medium text-blue-600 truncate">
+                                                Palm Beach County
+                                            </p>
+                                            <div class="ml-2 flex-shrink-0 flex">
+                                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Coming Soon
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 sm:flex sm:justify-between">
+                                            <div class="sm:flex">
+                                                <p class="flex items-center text-sm text-gray-500">
+                                                    <i class="fas fa-calendar-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    July 5, 2023
+                                                </p>
+                                                <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                                    <i class="fas fa-map-marker-alt flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                    Online
+                                                </p>
+                                            </div>
+                                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                                <i class="fas fa-certificate flex-shrink-0 mr-1.5 text-gray-400"></i>
+                                                <p>
+                                                    2,104 certificates
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity Section -->
+                <div class="mt-8">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Recent Activity</h2>
+                    <div class="mt-2 bg-white shadow overflow-hidden sm:rounded-md">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flow-root">
+                                <ul role="list" class="-mb-8">
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex space-x-3">
+                                                <div>
+                                                    <span class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fas fa-check text-white"></i>
+                                                    </span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500">Won certificate <span class="font-medium text-gray-900">#FL-2023-1234</span> in Hillsborough County auction</p>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2023-05-15">May 15</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex space-x-3">
+                                                <div>
+                                                    <span class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fas fa-user-plus text-white"></i>
+                                                    </span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500">Registered for <span class="font-medium text-gray-900">Miami-Dade County</span> tax certificate auction</p>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2023-05-12">May 12</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <div class="relative flex space-x-3">
+                                                <div>
+                                                    <span class="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fas fa-dollar-sign text-white"></i>
+                                                    </span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500">Received interest payment of <span class="font-medium text-gray-900">$725.42</span> for certificate #FL-2022-9876</p>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2023-05-07">May 7</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="mt-6">
+                                <a href="#" class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    View all activity
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %} 
