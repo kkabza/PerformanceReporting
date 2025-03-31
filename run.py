@@ -90,23 +90,36 @@ def run_app():
     """Run the Flask application"""
     logger.info('Initializing Flask application')
     
-    # Import the Flask app module
-    # Our app is defined directly in app.py, not as a module inside app/
-    import app as flask_app
+    # We need to add the current directory to the Python path to ensure imports work
+    sys.path.insert(0, os.getcwd())
     
-    # Set debug mode from environment variable
-    debug = os.environ.get('FLASK_ENV') == 'development'
+    try:
+        # Try to import the Flask app from app.py
+        import app
+        logger.info("Successfully imported app module")
+        
+        # Set debug mode from environment variable
+        debug = os.environ.get('FLASK_ENV') == 'development'
+        
+        # Check blueprint URL rules
+        check_blueprint_url_rules()
+        
+        # Check UI accessibility
+        check_ui_accessibility()
+        
+        logger.info(f'Running Flask app in {"development" if debug else "production"} mode')
+        
+        # Run the application - access the app instance directly
+        app.app.run(host='0.0.0.0', port=5000, debug=True)
     
-    # Check blueprint URL rules
-    check_blueprint_url_rules()
-    
-    # Check UI accessibility
-    check_ui_accessibility()
-    
-    logger.info(f'Running Flask app in {"development" if debug else "production"} mode')
-    
-    # Run the application
-    flask_app.app.run(host='0.0.0.0', port=5000, debug=debug)
+    except ImportError as e:
+        logger.error(f"Failed to import app module: {str(e)}")
+        sys.exit(1)
+    except AttributeError as e:
+        logger.error(f"Failed to access app instance: {str(e)}")
+        # Let's see what attributes are available in the app module
+        logger.info(f"Available attributes in app module: {dir(app)}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     log_dir = setup_directories()

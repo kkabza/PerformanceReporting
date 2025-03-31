@@ -13,5 +13,9 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
 # Register blueprints
 app.register_blueprint(home_bp)
 
+def create_app():
+    """Factory function to create the Flask application"""
+    return app
+
 if __name__ == '__main__':
     app.run(debug=True) 
