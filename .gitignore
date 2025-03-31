@@ -37,6 +37,8 @@ pytest_cache/
 # Flask
 instance/*
 !instance/logs/
+instance/logs/*.log.txt
+instance/logs/*.log
 !instance/logs/.gitkeep
 !instance/logs/.gitignore
 
@@ -58,6 +60,10 @@ env/
 build_reports/*
 !build_reports/.gitkeep
 !build_reports/.gitignore
+
+# Logs
+*.log
+*.log.txt
 
 # Keep template environment files
 !.env.example
