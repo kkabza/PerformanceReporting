@@ -1,0 +1,23 @@
+2025-03-31 18:11:01,914 - taxsale - INFO - Starting Florida Tax Certificate Sale Auctions application
+2025-03-31 18:11:01,914 - taxsale - INFO - Initializing Flask application
+2025-03-31 18:11:01,914 - taxsale - INFO - Checking for build reports...
+2025-03-31 18:11:01,915 - taxsale - INFO - Recent build report found: build_reports/test-summary-20250331-180955.txt
+2025-03-31 18:11:01,915 - taxsale - INFO - Report summary: ====================================
+2025-03-31 18:11:01,917 - taxsale - INFO - Successfully imported app module
+2025-03-31 18:11:01,917 - taxsale - INFO - Checking blueprint URL rules...
+2025-03-31 18:11:01,922 - taxsale - INFO - Checking UI accessibility standards...
+2025-03-31 18:11:01,922 - taxsale - INFO - Running Flask app in development mode
+2025-03-31 18:11:01,925 - taxsale - INFO - Performing post-build test: Verifying home page loads...
+2025-03-31 18:11:03,951 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:04,964 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:05,974 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:06,984 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:07,989 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:08,999 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:10,010 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:11,019 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:12,032 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:13,041 - taxsale - WARNING - ❌ Home page returned HTTP 403
+2025-03-31 18:11:14,046 - taxsale - ERROR - ❌ Failed to verify home page loads after multiple attempts!
+2025-03-31 18:11:14,047 - taxsale - ERROR - Post-build test failed: Home page is not accessible!
+2025-03-31 18:11:14,048 - taxsale - ERROR - Terminating application due to failed post-build test

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Pre-push hook to check for uncommitted changes
+# This hook prevents pushing if there are uncommitted changes
+
+echo "Running pre-push checks..."
+
+# Check for uncommitted changes
+echo "Checking for uncommitted changes..."
+/usr/bin/env python3 check_for_uncommitted.py
+
+# Store the exit code
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Error: You have uncommitted changes. Please commit or stash them before pushing."
+  echo "Run 'make commit-check' to see the details."
+  exit 1
+fi
+
+# Check for TDD compliance
+echo "Verifying TDD compliance..."
+make verify-reports
+
+REPORT_RESULT=$?
+
+if [ $REPORT_RESULT -ne 0 ]; then
+  echo "Error: TDD compliance check failed. Please generate a build report before pushing."
+  echo "Run 'make pre-build-test' to generate a report."
+  exit 1
+fi
+
+echo "All pre-push checks passed!"
+exit 0 

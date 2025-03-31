@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Pre-commit hook for Florida Tax Certificate Sales application
+# This ensures that:
+# 1. No uncommitted changes are left behind
+# 2. Build reports are valid and up-to-date
+# 3. Tests pass
+
+echo "Running pre-commit checks..."
+
+# Make sure we're in the project root
+cd "$(git rev-parse --show-toplevel)"
+
+# Check if build report exists and is valid
+echo "Checking build reports..."
+/usr/bin/env python3 verify_reports.py
+
+if [ $? -ne 0 ]; then
+  echo "Warning: Build report verification failed."
+  echo "Do you want to generate a new build report? (y/n)"
+  read answer
+  if [ "$answer" = "y" ]; then
+    echo "Generating build report..."
+    /usr/bin/env python3 verify_reports.py --force
+    if [ $? -ne 0 ]; then
+      echo "Error: Failed to generate build report. Please fix the issues before committing."
+      exit 1
+    fi
+  else
+    echo "Error: Build report is required by TDD rules. Please generate a report before committing."
+    exit 1
+  fi
+fi
+
+# Add the new build report to the commit if it was generated
+if git status --porcelain | grep -q "build_reports/"; then
+  echo "Adding newly generated build report to the commit..."
+  git add build_reports/
+fi
+
+# Make sure we enforce build versioning
+echo "Checking for build version..."
+if ! grep -q "BUILD_VERSION" app.py; then
+  echo "Warning: BUILD_VERSION not found in app.py. Please add it to comply with versioning rules."
+fi
+
+# Check that file naming follows rules
+echo "Checking file naming conventions..."
+if find app/templates -name "*.html" | grep -v "^app/templates/\(pages\|layouts\|components\|errors\)/"; then
+  echo "Warning: HTML templates should be in pages, layouts, components, or errors subdirectories."
+fi
+
+# Ensure log files use the correct extension
+if find . -name "*.log" | grep -v "\.log\.txt$"; then
+  echo "Error: Log files must use the .log.txt extension."
+  exit 1
+fi
+
+echo "All pre-commit checks passed successfully!"
+exit 0 

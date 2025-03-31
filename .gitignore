@@ -16,24 +16,58 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+pytest_cache/
+.pytest_cache/
+
+# Flask
+instance/*
+!instance/logs/
+!instance/logs/.gitkeep
+!instance/logs/.gitignore
+
 # Virtual Environment
 venv/
 ENV/
-.env
+env/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.DS_Store
 
-# Flask
-instance/
-.webassets-cache
+# Project-specific
+.env
+.env.backup
+build_reports/*
+!build_reports/.gitkeep
+!build_reports/.gitignore
+
+# Keep template environment files
+!.env.example
+!.env.development
+!.env.testing
+!.env.production
+!.env.db
+
+# Template-specific
+blazor/
 
 # Tailwind
 node_modules/

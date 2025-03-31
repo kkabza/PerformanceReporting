@@ -1,175 +1,142 @@
-# Florida Tax Certificate Sale Auctions
+# Flask Multi-Environment Template
 
-## Overview
-This web application provides a platform for participating in Florida Tax Certificate Sale Auctions. Tax certificate sales are a process where tax liens on properties with delinquent taxes are sold to investors through an auction system.
+A comprehensive Flask template with multi-environment support, designed for rapid development of web applications with best practices built in.
 
-## Features
-- Real-time auction monitoring
-- User registration and authentication
-- Search and filter tax certificates
-- Bidding system
-- Payment processing
-- Certificate management
-- Historical data tracking
-- County-specific auction information
-- Error monitoring with Sentry
+## About This Template
 
-## Technology Stack
-- Frontend: React.js
-- Backend: Flask (Python)
-- Database: PostgreSQL
-- Authentication: JWT
-- Real-time Updates: WebSocket
-- Error Monitoring: Sentry.io
+This template provides a solid foundation for building Flask web applications with:
 
-## Environment Setup
-
-This project supports multiple environments:
-
-### Environment Types
-- **Development**: For local development with debugging features enabled
-- **Testing**: For running automated tests
-- **Production**: For deployment with optimized settings and security features
-
-### Environment Files
-Each environment has its own configuration file:
-- `.env.development` - Development settings
-- `.env.testing` - Testing settings
-- `.env.production` - Production settings  
-- `.env.example` - Template for creating new environment files
-
-### Switching Environments
-Use the provided script to switch between environments:
-
-```bash
-# Switch to development environment
-./switch_env.py development
-
-# Switch to production environment
-./switch_env.py production
-
-# Switch to testing environment
-./switch_env.py testing
-```
-
-### Running in Different Environments
-Use the run_env.py script to start the application in the desired environment:
-
-```bash
-# Run in development mode
-./run_env.py development
-
-# Run in production mode
-./run_env.py production
-
-# Run with Docker Compose
-./run_env.py development --docker
-
-# Run in production with custom settings
-./run_env.py production --port 8000 --workers 4
-```
-
-## Project Structure
-```
-.
-├── app/                      # Application package
-│   ├── routes/               # Route definitions
-│   ├── static/               # Static assets
-│   ├── templates/            # HTML templates
-│   └── utils/                # Utility modules
-├── config/                   # Configuration package
-│   ├── __init__.py           # Config loader
-│   ├── base.py               # Base configuration
-│   ├── development.py        # Development configuration
-│   ├── production.py         # Production configuration
-│   └── testing.py            # Testing configuration
-├── tests/                    # Test suite
-│   ├── unit/                 # Unit tests
-│   ├── integration/          # Integration tests
-│   └── ...                   # Other test types
-├── .env.development          # Development environment variables
-├── .env.production           # Production environment variables
-├── .env.testing              # Testing environment variables
-├── app.py                    # Application entry point
-├── requirements.txt          # Production dependencies
-├── requirements-dev.txt      # Development dependencies
-├── requirements-test.txt     # Testing dependencies
-├── run_env.py                # Environment runner script
-└── switch_env.py             # Environment switcher script
-```
+- **Multiple environment configurations**: Development, testing, and production environments
+- **Automated testing**: Unit, integration, and functional tests with pytest
+- **Build reporting**: Automated test report generation
+- **Error tracking**: Sentry.io integration
+- **Docker support**: Containerized development and deployment
+- **Git hooks**: Pre-commit and pre-push hooks for quality assurance
 
 ## Getting Started
 
-### Prerequisites
-- Python 3.8 or higher
-- pip
-- PostgreSQL
+To use this template, follow these steps:
 
-### Installation
-1. Clone the repository:
+### Option 1: GitHub Template (Recommended)
+
+1. Click "Use this template" on the GitHub repository page
+2. Name your repository and create it
+3. Clone your new repository
+4. Run the initialization script:
+
 ```bash
-git clone https://github.com/kkabza/taxsale.git
-cd taxsale
+./init_project.py --name "Your Project Name" --description "Your project description"
 ```
 
-2. Set up environment:
-```bash
-# Copy example environment file
-cp .env.example .env
+### Option 2: Manual Setup
 
+1. Clone this repository
+2. Remove the Git history and initialize a new repository:
+
+```bash
+rm -rf .git
+git init
+```
+
+3. Run the initialization script:
+
+```bash
+./init_project.py --name "Your Project Name" --description "Your project description"
+```
+
+## Environment Setup
+
+This template uses environment-specific configuration files:
+
+- `.env.development` - Development environment variables
+- `.env.testing` - Testing environment variables
+- `.env.production` - Production environment variables
+
+To switch between environments, use the `switch_env.py` script:
+
+```bash
 # Switch to development environment
 ./switch_env.py development
+
+# Switch to testing environment
+./switch_env.py testing
+
+# Switch to production environment
+./switch_env.py production
 ```
 
-3. Install dependencies:
-```bash
-# For production
-pip install -r requirements.txt
+## Running the Application
 
-# For development
-pip install -r requirements-dev.txt
-```
+Use the `run_env.py` script to run the application in the specified environment:
 
-4. Start the application:
 ```bash
 # Run in development mode
 ./run_env.py development
+
+# Run in testing mode
+./run_env.py testing
+
+# Run in production mode
+./run_env.py production
 ```
 
-## Error Monitoring with Sentry
+## Docker Support
 
-This application uses Sentry.io for error monitoring and performance tracking. To enable Sentry:
+For containerized development and deployment:
 
-1. Sign up for a free account at [Sentry.io](https://sentry.io)
-2. Create a new Python Flask project in Sentry
-3. Copy the DSN provided by Sentry
-4. Add the DSN to your `.env` file:
+```bash
+# Start development environment
+docker-compose up
+
+# Build and run production container
+docker build -t myapp .
+docker run -p 5000:5000 myapp
 ```
-SENTRY_DSN=your-sentry-dsn-here
+
+## Test-Driven Development
+
+This template enforces TDD practices with automated build reporting:
+
+```bash
+# Run all tests
+make test
+
+# Generate a build report
+make report
+
+# Verify build reports exist
+make verify-reports
 ```
 
-To test Sentry integration:
-- Visit `/debug-sentry` to send a test message to Sentry
-- Visit `/debug-sentry-error` to trigger a test error
+## Directory Structure
 
-The application includes the following Sentry features:
-- Automatic error capturing
-- Performance monitoring
-- Release tracking
-- User context tracking
-- Custom event capturing
+```
+.
+├── app/                  # Application package
+│   ├── routes/           # Route definitions
+│   ├── static/           # Static assets
+│   ├── templates/        # HTML templates
+│   └── utils/            # Utility modules
+├── config/               # Configuration package
+│   ├── __init__.py       # Config loader
+│   ├── base.py           # Base configuration
+│   ├── development.py    # Development configuration
+│   ├── production.py     # Production configuration
+│   └── testing.py        # Testing configuration
+├── tests/                # Test suite
+│   ├── unit/             # Unit tests
+│   ├── integration/      # Integration tests
+│   └── functional/       # Functional tests
+├── build_reports/        # Test reports
+├── instance/             # Instance-specific data
+│   └── logs/             # Application logs
+└── scripts/              # Utility scripts
+```
 
 ## Contributing
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
-## Contact
-Keith Kabza - [GitHub](https://github.com/kkabza)
+## Template Documentation
 
-Project Link: [https://github.com/kkabza/taxsale](https://github.com/kkabza/taxsale) 
+For detailed information about using and customizing this template, see [TEMPLATE.md](TEMPLATE.md). 
