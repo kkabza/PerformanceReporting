@@ -1,0 +1,33 @@
+====================================
+Florida Tax Certificate Sales Test Summary
+====================================
+
+Test Run Start Time: 2025-03-31 19:14:16
+Test Run End Time: 2025-03-31 19:14:17
+Duration: 0.39 seconds
+
+Total Tests Run: 0
+Passed: 0
+Failed: 0
+Skipped: 0
+
+Test Coverage Summary:
+---------------------
+Name                           Stmts   Miss  Cover
+--------------------------------------------------
+app/__init__.py                    0      0   100%
+app/routes/__init__.py             0      0   100%
+app/routes/home.py                25     25     0%
+app/utils/__init__.py              0      0   100%
+app/utils/report_enforcer.py      73     73     0%
+app/utils/sentry_utils.py         49     49     0%
+app/utils/test_reporter.py       116    116     0%
+--------------------------------------------------
+TOTAL                            263    263     0%
+
+Notes on Test Modifications:
+---------------------------
+Test run completed for auto-generated test categories: unit, integration, functional, sql, api, ui, bdd
+
+Executed By: keithkabza
+Build Version: 5f9a64e
