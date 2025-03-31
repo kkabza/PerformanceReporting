@@ -1,4 +1,4 @@
-.PHONY: run install clean test test-unit test-all report pre-build-test post-build-test report-status verify-reports force-report
+.PHONY: run install clean test test-unit test-all report pre-build-test post-build-test report-status verify-reports force-report commit-check
 
 run:
 	python run.py
@@ -66,4 +66,8 @@ force-report:
 
 # Special target to help comply with TDD rules
 tdd-compliance: verify-reports pre-build-test
-	@echo "TDD compliance check completed." 
+	@echo "TDD compliance check completed."
+
+commit-check:
+	@echo "Checking for uncommitted changes..."
+	./check_for_uncommitted.py 
