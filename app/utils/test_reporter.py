@@ -93,7 +93,15 @@ class TestReporter:
             
             report_file.write(f"Executed By: {os.environ.get('USER', 'Unknown')}\n")
             report_file.write(f"Build Version: {self._get_git_version()}\n")
-        
+            
+        # Inform the report enforcer that a report has been generated
+        try:
+            from app.utils.report_enforcer import mark_report_generated
+            mark_report_generated()
+        except ImportError:
+            # Report enforcer might not be available, that's ok
+            pass
+            
         return self.report_path
     
     def _get_report_header(self):

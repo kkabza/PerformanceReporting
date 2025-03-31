@@ -7,4 +7,7 @@ pytest==7.4.0
 pytest-cov==4.1.0
 pytest-flask==1.2.0
 beautifulsoup4==4.12.2
-requests==2.31.0 
+requests==2.31.0
+
+# Error monitoring
+sentry-sdk[flask]==1.32.0 

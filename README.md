@@ -12,19 +12,21 @@ This web application provides a platform for participating in Florida Tax Certif
 - Certificate management
 - Historical data tracking
 - County-specific auction information
+- Error monitoring with Sentry
 
 ## Technology Stack
 - Frontend: React.js
-- Backend: Node.js
+- Backend: Flask (Python)
 - Database: PostgreSQL
 - Authentication: JWT
 - Real-time Updates: WebSocket
+- Error Monitoring: Sentry.io
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+- Python 3.8 or higher
+- pip
 - PostgreSQL
 
 ### Installation
@@ -36,7 +38,7 @@ cd taxsale
 
 2. Install dependencies:
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
 3. Set up environment variables:
@@ -46,8 +48,31 @@ cp .env.example .env
 
 4. Start the development server:
 ```bash
-npm run dev
+./start.sh
 ```
+
+## Error Monitoring with Sentry
+
+This application uses Sentry.io for error monitoring and performance tracking. To enable Sentry:
+
+1. Sign up for a free account at [Sentry.io](https://sentry.io)
+2. Create a new Python Flask project in Sentry
+3. Copy the DSN provided by Sentry
+4. Add the DSN to your `.env` file:
+```
+SENTRY_DSN=your-sentry-dsn-here
+```
+
+To test Sentry integration:
+- Visit `/debug-sentry` to send a test message to Sentry
+- Visit `/debug-sentry-error` to trigger a test error
+
+The application includes the following Sentry features:
+- Automatic error capturing
+- Performance monitoring
+- Release tracking
+- User context tracking
+- Custom event capturing
 
 ## Contributing
 1. Fork the repository
