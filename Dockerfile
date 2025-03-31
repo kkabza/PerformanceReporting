@@ -6,6 +6,7 @@ ENV BUILD_VERSION=$BUILD_VERSION
 ENV FLASK_APP=app.py
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV FLASK_RUN_PORT=8080
 
 # Set working directory
 WORKDIR /app
@@ -29,14 +30,14 @@ RUN mkdir -p instance/logs build_reports
 RUN echo "# Build version: $BUILD_VERSION" >> app.py
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8080
 
 # Run pre-build tests and ensure reports are generated
 RUN python run.py pre-build
 
 # Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/ || exit 1 
+    CMD curl -f http://localhost:8080/ || exit 1 

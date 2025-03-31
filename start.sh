@@ -49,6 +49,8 @@ mkdir -p build_reports
 
 # Set development environment
 export FLASK_ENV=development
+# Set custom port to avoid conflict with macOS services
+export FLASK_RUN_PORT=8080
 
 # === CRITICAL: TDD RULE - BUILD REPORTS ARE MANDATORY ===
 echo -e "${BOLD}=== CRITICAL: TDD RULE - BUILD REPORTS ARE MANDATORY ===${NC}"
@@ -70,10 +72,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # Start the application
-echo -e "${GREEN}${BOLD}Starting application...${NC}"
+echo -e "${GREEN}${BOLD}Starting application on port 8080...${NC}"
 
 # Run with post-build verification
-./run.py
+python app.py --port=8080
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
@@ -82,7 +84,7 @@ if [ $RESULT -ne 0 ]; then
     
     # Try running curl to diagnose issues
     echo -e "${YELLOW}Diagnosing connection to web app...${NC}"
-    curl -v http://localhost:5000 
+    curl -v http://localhost:8080 
     
     # Generate a report even when failed
     echo -e "${YELLOW}Generating post-failure report...${NC}"

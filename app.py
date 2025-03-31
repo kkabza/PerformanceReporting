@@ -5,6 +5,7 @@ import os
 import sys
 import atexit
 import logging
+import argparse
 from flask import Flask, render_template
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
@@ -102,4 +103,15 @@ def create_app(config_class=None):
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0') 
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Florida Tax Certificate Sale Application')
+    parser.add_argument('--port', type=int, default=8080, help='Port to run the application on (default: 8080)')
+    parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to run the application on (default: 0.0.0.0)')
+    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+    
+    args = parser.parse_args()
+    
+    # Use port from FLASK_RUN_PORT env var if set, otherwise use command line arg
+    port = int(os.getenv('FLASK_RUN_PORT', args.port))
+    
+    app.run(host=args.host, port=port, debug=args.debug or env == 'development') 

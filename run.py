@@ -13,6 +13,9 @@ import subprocess
 from pathlib import Path
 from flask import Flask
 
+# Standard port for the application
+DEFAULT_PORT = 8080
+
 # Create necessary directories for logs and tests
 def setup_directories():
     # Ensure log directory exists with proper structure
@@ -124,7 +127,7 @@ def ensure_build_reports():
         logger.error(f'Error ensuring build reports: {str(e)}', exc_info=True)
         # Continue app execution even if report generation fails
 
-def verify_home_page_loads(port=5000, max_attempts=10, wait_time=1):
+def verify_home_page_loads(port=DEFAULT_PORT, max_attempts=10, wait_time=1):
     """
     Verify that the home page loads correctly after startup.
     This is a critical post-build test required by the TDD cursor rules.
@@ -190,50 +193,57 @@ def run_app():
         
         logger.info(f'Running Flask app in {"development" if debug else "production"} mode')
         
+        # Get port from environment variable or use default
+        port = int(os.environ.get('FLASK_RUN_PORT', DEFAULT_PORT))
+        
         # Start the application in a subprocess so we can continue executing this script
         flask_process = subprocess.Popen(
             [sys.executable, "-c", 
-            "import app; app.app.run(debug=True, host='0.0.0.0', port=5000)"],
+            f"import app; app.app.run(debug=True, host='0.0.0.0', port={port})"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         
-        # Verify home page loads as a post-build test
-        success = verify_home_page_loads()
-        
-        if success:
-            logger.info("Post-build test passed: Home page is accessible")
-            # Continue running the app in the main thread
-            logger.info("Continuing with main application thread")
-            
-            # Kill the subprocess now that we've verified it's working
-            flask_process.terminate()
-            
-            # Run the application directly in this process
-            app.app.run(host='0.0.0.0', port=5000, debug=True)
-        else:
+        # Verify that the home page loads
+        if not verify_home_page_loads(port=port):
             logger.error("Post-build test failed: Home page is not accessible!")
-            logger.error("Terminating application due to failed post-build test")
-            
-            # Kill the flask process
             flask_process.terminate()
-            sys.exit(1)
-    
-    except ImportError as e:
-        logger.error(f"Failed to import app module: {str(e)}")
-        sys.exit(1)
-    except AttributeError as e:
-        logger.error(f"Failed to access app instance: {str(e)}")
-        # Let's see what attributes are available in the app module
-        logger.info(f"Available attributes in app module: {dir(app)}")
-        sys.exit(1)
+            return False
+            
+        # Stay alive to manage the Flask process
+        try:
+            while True:
+                time.sleep(10)
+                # Check if the process is still running
+                if flask_process.poll() is not None:
+                    break
+        except KeyboardInterrupt:
+            logger.info("Received keyboard interrupt, shutting down...")
+            flask_process.terminate()
+            
+        return True
+        
+    except Exception as e:
+        logger.error(f'Error running Flask application: {str(e)}', exc_info=True)
+        return False
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # Setup directories and logging
     log_dir = setup_directories()
     logger = setup_logging(log_dir)
     
-    try:
-        run_app()
-    except Exception as e:
-        logger.error(f'Error in application: {str(e)}', exc_info=True)
-        sys.exit(1) 
+    # Set environment to development if not specified
+    if not os.environ.get('FLASK_ENV'):
+        os.environ['FLASK_ENV'] = 'development'
+        logger.warning('Environment not specified, defaulting to development')
+    
+    # Set port to DEFAULT_PORT if not specified
+    if not os.environ.get('FLASK_RUN_PORT'):
+        os.environ['FLASK_RUN_PORT'] = str(DEFAULT_PORT)
+        logger.info(f'Port not specified, using default port {DEFAULT_PORT}')
+    
+    # Run the application
+    success = run_app()
+    
+    # Exit with proper status code
+    sys.exit(0 if success else 1) 

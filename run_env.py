@@ -19,6 +19,7 @@ colorama.init()
 ENVIRONMENTS = ['development', 'production', 'testing']
 ENV_FILES = {env: f'.env.{env}' for env in ENVIRONMENTS}
 ENV_FILES['example'] = '.env.example'
+DEFAULT_PORT = 8080
 
 def print_header(text):
     """Print a formatted header."""
@@ -95,14 +96,15 @@ def run_docker_compose(env_name, detached=False):
         print_error(f"Failed to start Docker Compose: {e}")
         return False
 
-def run_flask(env_name, host='0.0.0.0', port=5000):
+def run_flask(env_name, host='0.0.0.0', port=DEFAULT_PORT):
     """Run the Flask application directly."""
-    print_info(f"Starting Flask application in {env_name} environment...")
+    print_info(f"Starting Flask application in {env_name} environment on port {port}...")
     
     # Set environment variables
     env = os.environ.copy()
     env['FLASK_APP'] = 'app.py'
     env['FLASK_ENV'] = env_name
+    env['FLASK_RUN_PORT'] = str(port)
     
     if env_name == 'development':
         env['FLASK_DEBUG'] = '1'
@@ -116,9 +118,9 @@ def run_flask(env_name, host='0.0.0.0', port=5000):
         print_error(f"Failed to start Flask: {e}")
         return False
 
-def run_gunicorn(host='0.0.0.0', port=5000, workers=2):
+def run_gunicorn(host='0.0.0.0', port=DEFAULT_PORT, workers=2):
     """Run the application with Gunicorn (production)."""
-    print_info("Starting application with Gunicorn (production)...")
+    print_info(f"Starting application with Gunicorn (production) on port {port}...")
     
     try:
         gunicorn_cmd = [
@@ -162,8 +164,8 @@ def main():
     parser.add_argument(
         '--port',
         type=int,
-        default=5000,
-        help="Port to bind to (default: 5000)"
+        default=DEFAULT_PORT,
+        help=f"Port to bind to (default: {DEFAULT_PORT})"
     )
     parser.add_argument(
         '--workers',
@@ -198,8 +200,9 @@ def main():
 if __name__ == "__main__":
     # Handle Ctrl+C gracefully
     def signal_handler(sig, frame):
-        print_info("\nShutting down gracefully...")
+        print("\nExiting...")
         sys.exit(0)
     
     signal.signal(signal.SIGINT, signal_handler)
+    
     sys.exit(main()) 
