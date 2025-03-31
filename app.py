@@ -10,6 +10,14 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
 
+# Disable CSRF for testing if needed
+if os.getenv('FLASK_ENV') == 'development':
+    app.config['WTF_CSRF_ENABLED'] = False
+
+# Ensure static files are properly served
+app.static_folder = 'app/static'
+app.template_folder = 'app/templates'
+
 # Register blueprints
 app.register_blueprint(home_bp)
 
@@ -18,4 +26,4 @@ def create_app():
     return app
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, host='0.0.0.0') 

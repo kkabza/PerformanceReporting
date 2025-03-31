@@ -1,4 +1,4 @@
-.PHONY: run install clean test test-unit test-all report
+.PHONY: run install clean test test-unit test-all report pre-build-test post-build-test report-status
 
 run:
 	python run.py
@@ -39,5 +39,14 @@ test-all: test-unit test-integration test-functional test-api test-ui test-sql t
 	@echo "All tests completed"
 
 report:
-	python -c "import datetime; print('Report generated at: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))" > build_reports/test-summary-$$(date +"%Y%m%d-%H%M%S").txt
-	pytest --cov=app --cov-report=term >> build_reports/test-summary-$$(date +"%Y%m%d-%H%M%S").txt 
+	python -c "from app.utils.test_reporter import create_build_report; print(create_build_report('all'))"
+
+pre-build-test:
+	python -c "from app.utils.test_reporter import create_build_report; print(create_build_report('pre-build'))"
+
+post-build-test:
+	python -c "from app.utils.test_reporter import create_build_report; print(create_build_report('post-build'))"
+
+report-status:
+	@echo "Checking for build reports..."
+	@ls -lt build_reports/ | head -5 
