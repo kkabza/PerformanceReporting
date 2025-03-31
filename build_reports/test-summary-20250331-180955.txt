@@ -1,0 +1,23 @@
+====================================
+Florida Tax Certificate Sales Test Summary
+====================================
+
+Test Run Start Time: 2025-03-31 18:09:55
+Test Run End Time: 2025-03-31 18:09:55
+Duration: 0.00 seconds
+
+Total Tests Run: 0
+Passed: 0
+Failed: 0
+Skipped: 0
+
+Test Coverage Summary:
+---------------------
+Error generating coverage: [Errno 2] No such file or directory: 'pytest'
+
+Notes on Test Modifications:
+---------------------------
+Error running tests: [Errno 2] No such file or directory: 'pytest'
+
+Executed By: keithkabza
+Build Version: 243938f-dirty

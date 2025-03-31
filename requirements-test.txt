@@ -1,0 +1,36 @@
+# Testing requirements for Florida Tax Certificate Sale application
+
+# Main requirements
+-r requirements.txt
+
+# Testing framework
+pytest==7.4.0
+pytest-cov==4.1.0
+pytest-flask==1.2.0
+pytest-mock==3.11.1
+
+# Test utilities
+factory-boy==3.3.0
+freezegun==1.2.2
+responses==0.23.3
+WebTest==3.0.0
+
+# BDD testing
+behave==1.2.6
+behave-pytest==0.1.1
+
+# UI testing
+selenium==4.11.2
+beautifulsoup4==4.12.2
+
+# API testing
+requests==2.31.0
+requests-mock==1.11.0
+
+# Mocking and assertions
+mockito==1.4.0
+assertpy==1.1
+
+# Code quality for tests
+pytest-randomly==3.15.0
+pytest-timeout==2.1.0 
