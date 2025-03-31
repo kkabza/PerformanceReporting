@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Template Naming and Organization Convention
+
+## Description
+Flask templates must follow consistent naming conventions and organization patterns to prevent template loading errors and ensure maintainability.
+
+## Problem
+Inconsistent template naming and organization can lead to:
+- `TemplateNotFound` errors during rendering
+- Confusion about which templates extend which layouts
+- Difficulty in maintaining the application as it grows
+- Inconsistent user experience across pages
+
+From the logs:
+```
+jinja2.exceptions.TemplateNotFound: dashboard/performance_report.html
+```
+
+## Solution
+Follow these guidelines for template organization:
+
+### ✅ Correct Template Structure
+- Place all templates in logical subdirectories (e.g., `app/templates/dashboard/`)
+- Use consistent naming between routes and templates
+- Template names should reflect their content (e.g., `dashboard.html`, `test_results.html`)
+- Always confirm template existence before referencing in view functions

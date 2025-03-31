@@ -1,0 +1,60 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Comprehensive TDD and Build Test Rule for Flask
+
+[rules.flask_tdd_build_compliance]
+description = """
+Flask apps must follow TDD best practices. This includes pre-build and post-build tests with full test coverage: BDD, unit, functional, integration, SQL, API, and UI.
+All tests must live under the `tests/` directory and be organized by category. After each build, a test summary must be created and saved with a timestamp.
+"""
+level = "error"
+
+# Ensure required folder structure exists under tests/
+paths.include = ["tests/**"]
+
+required_structure = [
+  "tests/bdd/",
+  "tests/unit/",
+  "tests/functional/",
+  "tests/integration/",
+  "tests/sql/",
+  "tests/api/",
+  "tests/ui/"
+]
+
+# Additional commands/checks that must occur before and after build
+build.pre = [
+  "pytest tests/unit/",
+  "pytest tests/sql/",
+  "pytest tests/bdd/"
+]
+
+build.post = [
+  "pytest tests/integration/",
+  "pytest tests/functional/",
+  "pytest tests/api/",
+  "pytest tests/ui/",
+  "curl -s http://localhost:5000 | grep -qi '<title>.*Home.*</title>'"
+]
+
+# Enforce summary report creation after build
+report.required = true
+report.path = "build_reports/"
+report.name_format = "test-summary-%Y%m%d-%H%M%S.txt"
+report.content_requirements = [
+  "Test run start and end time",
+  "Total tests run",
+  "Total passed/failed",
+  "Notes on any test modifications"
+]
+
+error_message = """
+❌ TDD enforcement failed.
+- Make sure all tests are categorized and live in the proper `tests/` subfolders.
+- Run pre-build and post-build test suites as defined.
+- Confirm that the home page renders correctly post-deployment.
+- Generate a summary report in the format `test-summary-YYYYMMDD-HHMMSS.txt` with modification notes.
+"""

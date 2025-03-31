@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# UI Accessibility and Color Contrast Rule
+
+## Description
+All text elements must maintain sufficient contrast with their backgrounds to ensure readability for all users, including those with visual impairments.
+
+## Problem
+Poor color contrast between text and backgrounds creates accessibility issues that:
+- Make content difficult to read for many users
+- Create barriers for users with visual impairments
+- Fail to meet WCAG accessibility guidelines
+- Cause poor user experience, especially in different lighting conditions
+
+## Solution
+Follow these guidelines for text contrast:
+
+### ✅ Correct Contrast Practices
+- Normal text (under 18pt): minimum contrast ratio of 4.5:1
+- Large text (18pt or 14pt bold and larger): minimum contrast ratio of 3:1
+- Use Tailwind's built-in color system which considers contrast (e.g. text-gray-900 on bg-white)
+- Test color combinations with accessibility tools before implementation
+- For dark mode, use appropriate dark theme colors (e.g., dark:text-gray-100 on dark:bg-gray-800)
+
+### ❌ Problematic Contrast Examples
+- Light gray text on white backgrounds (e.g., text-gray-300 on bg-white)
+- Dark blue text on black backgrounds (e.g., text-blue-900 on bg-black)
+- Yellow text on white backgrounds (e.g., text-yellow-300 on bg-white)
+- Light text colors with opacity/transparency on variable backgrounds

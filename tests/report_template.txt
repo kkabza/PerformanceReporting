@@ -1,0 +1,22 @@
+====================================
+Florida Tax Certificate Sales Test Summary
+====================================
+
+Test Run Start Time: {start_time}
+Test Run End Time: {end_time}
+
+Total Tests Run: {total_tests}
+Passed: {passed_tests}
+Failed: {failed_tests}
+Skipped: {skipped_tests}
+
+Test Coverage Summary:
+---------------------
+{coverage_summary}
+
+Notes on Test Modifications:
+---------------------------
+{modification_notes}
+
+Executed By: {executor}
+Build Version: {version} 

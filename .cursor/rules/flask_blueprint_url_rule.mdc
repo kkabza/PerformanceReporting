@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Flask Blueprint URL Rule
+
+## Description
+When using Flask blueprints, all `url_for()` calls in templates must include the blueprint name prefix.
+
+## Problem
+If a blueprint prefix is omitted from a `url_for()` call, the application will crash with a `BuildError` at runtime:
+```
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'endpoint_name'. 
+Did you mean 'blueprint_name.endpoint_name' instead?
+```
+
+## Solution
+Always prefix route names with the blueprint name in all `url_for()` calls:
+
+### ✅ Correct
+```python
+url_for('blueprint_name.endpoint_name')
+```
+
+### ❌ Incorrect
+```python
+url_for('endpoint_name')
+```
+
+## Impact
+- **Severity**: High - causes 500 internal server errors in production
+- **Locations**: HTML templates, particularly in navigation and link elements
+- **When**: During page rendering when URL generation is attempted

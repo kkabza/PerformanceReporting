@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Log File Extension Rule
+
+[rules.log_file_extension]
+description = "All log files must use the `.log.txt` file extension to ensure consistency and compatibility with logging tools."
+level = "error"
+
+# Apply this rule to files in common logging directories
+paths.include = ["logs/**", "app/logs/**", "instance/logs/**"]
+
+# File name must end with `.log.txt`
+pattern = ".*\\.log\\.txt$"
+
+error_message = "Log files must use the `.log.txt` extension."
