@@ -49,6 +49,9 @@ else:
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
 
+# Set build version
+BUILD_VERSION = os.getenv('BUILD_VERSION', f"BUILD-20250331-{os.getenv('GIT_HASH', 'dev')}")
+
 # Disable CSRF for testing if needed
 if ENVIRONMENT == 'development':
     app.config['WTF_CSRF_ENABLED'] = False
@@ -59,6 +62,11 @@ app.template_folder = 'app/templates'
 
 # Register blueprints
 app.register_blueprint(home_bp)
+
+# Context processor to inject build version into all templates
+@app.context_processor
+def inject_build_version():
+    return dict(build_version=BUILD_VERSION)
 
 # Enable TDD report enforcement - Never skip build reports
 try:

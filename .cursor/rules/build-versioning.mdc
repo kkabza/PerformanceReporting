@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# .cursor/rules/build_versioning.yaml
+
+id: enforce-build-versioning
+title: Enforce Build Versioning with Hash
+trigger:
+  files:
+    - "**/*.py"
+    - "templates/base.html"
+    - "Dockerfile"
+description: |
+  Ensures the Flask app build includes a unique hash in the build number and that this build number appears on the base site template.
+criteria:
+  - Python scripts or build tools must generate a build version that includes a unique hash.
+  - The build version must be passed to the Flask app (e.g., via environment variable or config).
+  - The base template (e.g., templates/base.html) must include the build version discreetly, such as in the footer or as an HTML comment.
+  - Example format: BUILD-20250331-<hash>
+examples:
+  good:
+    - |
+      # config.py
+      import os
+      BUILD_VERSION = os.getenv("BUILD_VERSION", "BUILD-20250331-ab12cd3")
+
+    - |
+      <!-- templates/base.html -->
+      <!-- Build: BUILD-20250331-ab12cd3 -->
+
+    - |
+      # app.py
+      from config import BUILD_VERSION
+      @app.context_processor
+      def inject_build_version():
+          return dict(build_version=BUILD_VERSION)
+  bad:
+    - |
+      <!-- base.html -->
+      <!-- No build version included -->
+severity: warning
+fix_suggestion: |
+  Generate a build version with a timestamp and short commit hash in your CI/CD pipeline.
+  Pass it into your app via environment variable or config file.
+  Then render it in your base HTML template as a comment or in a footer element.

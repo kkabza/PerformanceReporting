@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Build: {{ build_version|default('BUILD-20250331-dev') }} -->
 </head>
 <body class="bg-gray-100">
     {% block content %}{% endblock %}
@@ -19,5 +20,10 @@
             document.querySelector('#mobile-menu').classList.toggle('hidden');
         }
     </script>
+    
+    <footer class="text-center text-gray-500 text-xs mt-8 py-4">
+        <p>&copy; 2025 Florida Tax Certificate Sales</p>
+        <p class="text-gray-400 text-xxs">v{{ build_version|default('BUILD-20250331-dev') }}</p>
+    </footer>
 </body>
 </html> 
