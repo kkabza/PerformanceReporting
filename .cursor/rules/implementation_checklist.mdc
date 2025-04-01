@@ -1,1 +1,156 @@
- 
+---
+description: Provides a checklist for implementing new features consistently
+globs: ["**/*.py", "**/*.html", "**/*.js"]
+alwaysApply: false
+---
+
+# Feature Implementation Checklist
+
+id: implementation-checklist
+title: Feature Implementation Checklist
+trigger:
+  files:
+    - "**/*.py"
+    - "**/*.html"
+    - "**/*.js"
+description: |
+  A standardized checklist for implementing new features to ensure consistency,
+  quality, and maintainability across the application.
+criteria:
+  - Planning and design requirements are documented
+  - Tests are written before implementation (TDD)
+  - Security considerations are addressed
+  - Appropriate error handling is implemented
+  - Documentation is updated
+  - Cross-platform compatibility is verified
+examples:
+  good:
+    - |
+      # Good implementation with proper planning
+      """
+      This module implements the report generation feature.
+      
+      Design considerations:
+      - Uses async processing for large reports
+      - Implements retry logic for API failures
+      - Stores results in database for persistence
+      """
+      
+      # Implementation follows documentation and includes tests
+      def generate_report(user_id, report_type):
+          """Generate a report for the specified user.
+          
+          Args:
+              user_id: The ID of the user requesting the report
+              report_type: The type of report to generate
+              
+          Returns:
+              A dict containing the report results or error information
+          """
+          # Implementation details...
+  bad:
+    - |
+      # Missing documentation and design considerations
+      def generate_report(user_id, report_type):
+          # No docstring or explanation
+          data = get_data(user_id)
+          # No error handling
+          return process_data(data, report_type)
+severity: warning
+fix_suggestion: |
+  Follow this structure for feature implementation:
+  
+  ```python
+  """
+  Module: feature_name.py
+  Purpose: Brief description of what this feature does
+  
+  Design considerations:
+  - List key design decisions
+  - Note security considerations
+  - Document cross-platform needs
+  """
+  
+  from typing import Dict, Any
+  import logging
+  
+  logger = logging.getLogger(__name__)
+  
+  def feature_function(param1: str, param2: int) -> Dict[str, Any]:
+      """Descriptive function name with clear purpose.
+      
+      Args:
+          param1: Description of first parameter
+          param2: Description of second parameter
+          
+      Returns:
+          Description of return value
+          
+      Raises:
+          ValueError: When parameters are invalid
+          ConnectionError: When external service is unavailable
+      """
+      try:
+          # Implementation with proper error handling
+          logger.info(f"Starting feature_function with {param1}")
+          result = {}
+          # ...implementation...
+          return result
+      except Exception as e:
+          logger.error(f"Error in feature_function: {str(e)}")
+          raise
+  ```
+
+## Description
+When implementing new features, follow this checklist to ensure consistency, quality, and maintainability.
+
+## Checklist
+
+### Planning & Design
+- [ ] Requirements are clearly defined and documented
+- [ ] UI wireframes/mockups created (for UI features)
+- [ ] Database schema changes identified (if needed)
+- [ ] API endpoints defined (if needed)
+- [ ] Security considerations documented
+
+### Implementation
+- [ ] Follow Flask blueprint organization
+- [ ] Create unit tests before implementation (TDD)
+- [ ] Use proper environment variable handling
+- [ ] Document functions and complex logic
+- [ ] Follow naming conventions
+- [ ] Implement proper error handling
+- [ ] Add logging for important events and errors
+
+### Testing
+- [ ] Unit tests cover happy paths and edge cases
+- [ ] Integration tests for API endpoints
+- [ ] UI tests for user interaction flows
+- [ ] Performance testing for database operations
+- [ ] Cross-browser testing (for UI features)
+
+### Documentation
+- [ ] Update API documentation
+- [ ] Add example usage
+- [ ] Document configuration requirements
+- [ ] Update README.md if needed
+
+### Security & Performance
+- [ ] Input validation implemented
+- [ ] Authentication/authorization checks
+- [ ] SQL injection prevention
+- [ ] XSS prevention (for UI features)
+- [ ] Performance optimization for queries
+- [ ] Proper use of caching where appropriate
+
+### Code Quality
+- [ ] Code follows project style guide
+- [ ] No hardcoded secrets or credentials
+- [ ] No unnecessary commented code
+- [ ] Functions follow single responsibility principle
+- [ ] No duplicate code
+
+## Impact
+- **Severity**: Medium - affects development quality and consistency
+- **Locations**: All code files
+- **When**: During feature planning and implementation 

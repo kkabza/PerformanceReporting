@@ -1,3 +1,11 @@
+---
+description: Ensures API routes are defined and called consistently throughout the codebase
+globs: 
+  - app/routes/**/*.py
+  - app/templates/**/*.html
+  - app/static/js/**/*.js
+alwaysApply: true
+---
 # API Route Consistency Rule
 
 id: api-route-consistency

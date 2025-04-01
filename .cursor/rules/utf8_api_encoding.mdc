@@ -1,14 +1,77 @@
+---
+description: Ensures all API responses properly handle UTF-8 encoding to prevent encoding errors
+globs: 
+  - app/routes/**/*.py
+  - app/templates/**/*.html
+  - app/static/js/**/*.js
+  - app/utils/**/*.py
+alwaysApply: true
+---
 # UTF-8 API Encoding Rule
 
-rules:
-  utf8_api_encoding:
-    description: "All API responses must properly handle UTF-8 encoding to prevent encoding errors"
-    level: error
-    paths:
-      include:
-        - "app/routes/**/*.py"
-        - "app/templates/**/*.html"
-        - "app/static/js/**/*.js"
-        - "app/utils/**/*.py"
-    patterns:
-      - pattern: "json\.dumps\(.*ensure_ascii\s*=\s*False"
+id: utf8-api-encoding 
+title: Enforce UTF-8 Encoding in API Responses
+trigger:
+  files:
+    - "app/routes/**/*.py"
+    - "app/templates/**/*.html"
+    - "app/static/js/**/*.js"
+    - "app/utils/**/*.py"
+description: |
+  Ensures all API responses properly handle UTF-8 encoding to prevent 'latin-1' codec errors 
+  and ensure compatibility with international character sets.
+criteria:
+  - Set explicit UTF-8 charset in Content-Type headers
+  - Use Response objects with defined MIME types
+  - Set ensure_ascii=False in all json.dumps() calls
+  - Explicitly set response.encoding = 'utf-8' for requests responses
+  - Handle encoding errors with try/except blocks
+examples:
+  good:
+    - |
+      # Python response with proper encoding
+      return Response(
+          json.dumps(data, ensure_ascii=False),
+          mimetype='application/json; charset=utf-8',
+          status=200
+      )
+
+    - |
+      # JavaScript fetch request with encoding
+      fetch('/api/endpoint', {
+          headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Charset': 'utf-8'
+          },
+      });
+  bad:
+    - |
+      # Missing ensure_ascii=False
+      return jsonify(data)
+
+    - |
+      # No charset specification
+      return Response(
+          json.dumps(data),
+          mimetype='application/json',
+          status=200
+      )
+severity: error
+fix_suggestion: |
+  Create a helper function that properly handles API responses with UTF-8 encoding:
+  
+  ```python
+  def json_response(data, status=200):
+      return Response(
+          json.dumps(data, ensure_ascii=False),
+          mimetype='application/json; charset=utf-8',
+          status=status
+      )
+  ```
+  
+  Also ensure all requests have their encoding explicitly set:
+  ```python
+  response = requests.get(url)
+  response.encoding = 'utf-8'
+  ``` 

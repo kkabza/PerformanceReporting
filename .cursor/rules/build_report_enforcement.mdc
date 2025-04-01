@@ -1,1 +1,82 @@
- 
+---
+description: Ensures build reports are generated correctly and only when appropriate
+globs: 
+  - run.py
+  - app/utils/report_enforcer.py
+  - app/utils/**/*.py
+alwaysApply: true
+---
+# Build Report Enforcement Rule
+
+id: build-report-enforcement
+title: Enforce Build Report Generation Rules
+trigger:
+  files:
+    - "run.py"
+    - "app/utils/report_enforcer.py"
+    - "app/utils/**/*.py"
+description: |
+  Ensures build reports are generated correctly and only when the application is not running,
+  preventing report corruption and conflicts between report generation and application usage.
+criteria:
+  - Report generation should check if the application is already running
+  - Port availability should be verified before generating reports
+  - Reports should include build version and timestamp information
+  - Socket connections should be used to check for running instances
+examples:
+  good:
+    - |
+      # Check if port is available before generating report
+      def is_port_in_use(port):
+          import socket
+          with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+              return s.connect_ex(('localhost', port)) == 0
+              
+      if not is_port_in_use(8080):
+          generate_report()
+      else:
+          logger.info("App is running - skipping report generation")
+
+    - |
+      # Include proper timestamp and version in report
+      def generate_report():
+          timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+          build_version = os.getenv("BUILD_VERSION", "dev")
+          report_name = f"report-{build_version}-{timestamp}.html"
+          # Report generation code...
+  bad:
+    - |
+      # Generating report without checking app status
+      def generate_report():
+          # No check if app is running
+          # Report generation code...
+    
+    - |
+      # Using OS-specific commands for process detection
+      def is_app_running():
+          import os
+          return os.system("lsof -i:8080") == 0  # Only works on macOS/Linux
+severity: error
+fix_suggestion: |
+  Implement proper socket-based port checking before generating reports:
+  
+  ```python
+  def is_port_in_use(port):
+      import socket
+      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+          return s.connect_ex(('localhost', port)) == 0
+  
+  def should_generate_report():
+      # Check if app is running on port 8080
+      if is_port_in_use(8080):
+          logger.info("App is running - skipping report generation")
+          return False
+      return True
+  
+  if should_generate_report():
+      # Generate report with timestamp and version
+      timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+      build_version = os.getenv("BUILD_VERSION", "dev")
+      report_name = f"report-{build_version}-{timestamp}.html"
+      # Report generation code...
+  ``` 
