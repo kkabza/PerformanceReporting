@@ -44,6 +44,7 @@ def general():
                            app_insights_api_key_masked=app_insights_api_key_masked,
                            grafana_url=grafana_url,
                            grafana_api_key_masked=grafana_api_key_masked,
+                           grafana_api_key=grafana_api_key,
                            devops_org_url=devops_org_url,
                            devops_pat_masked=devops_pat_masked,
                            openai_endpoint=openai_endpoint,

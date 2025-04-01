@@ -299,12 +299,24 @@ traces
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                                    <input type="password" 
-                                           name="api_key"
-                                           id="api_key"
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           value="{{ grafana_api_key_masked|default('') }}">
-                                    <p class="mt-1 text-sm text-gray-500">API key with Viewer permissions</p>
+                                    <div class="relative">
+                                        <input type="password" 
+                                               name="api_key"
+                                               id="api_key"
+                                               class="mt-1 block w-full pr-16 rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                               value="{{ grafana_api_key|default('') }}">
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 mt-1">
+                                            <button type="button" onclick="toggleApiKeyVisibility()" class="text-gray-400 hover:text-gray-600">
+                                                <i id="eye-icon" class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between mt-1">
+                                        <p class="text-sm text-gray-500">API key with Viewer permissions</p>
+                                        <button type="button" onclick="copyApiKey()" class="text-sm text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-copy mr-1"></i> Copy
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1199,6 +1211,37 @@ async function runKustoQuery() {
 function selectGrafanaUrl(url) {
     if (url) {
         document.getElementById('grafana_url').value = url;
+    }
+}
+
+function toggleApiKeyVisibility() {
+    const apiKeyInput = document.getElementById('api_key');
+    const eyeIcon = document.getElementById('eye-icon');
+    
+    if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    } else {
+        apiKeyInput.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    }
+}
+
+function copyApiKey() {
+    const apiKeyInput = document.getElementById('api_key');
+    const apiKey = apiKeyInput.value;
+    
+    if (apiKey) {
+        const tempInput = document.createElement('input');
+        tempInput.value = apiKey;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        
+        alert('API key copied to clipboard');
     }
 }
 </script>
