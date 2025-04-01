@@ -303,7 +303,11 @@
                         <!-- OpenAI Connection Results -->
                         <div id="openaiResults" class="mt-4 hidden">
                             <h4 class="text-md font-medium text-gray-800 mb-2">Connection Results</h4>
-                            <div class="bg-gray-100 rounded-md p-4">
+                            <!-- Loading Spinner -->
+                            <div id="openaiLoading" class="flex justify-center my-8 hidden">
+                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                            </div>
+                            <div id="openaiResultContainer" class="bg-gray-100 rounded-md p-4">
                                 <pre id="openaiResultsContent" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
                             </div>
                         </div>
@@ -811,6 +815,16 @@ async function testOpenAIConnection() {
     }
 
     try {
+        // Show loading spinner
+        document.getElementById('openaiResults').classList.remove('hidden');
+        document.getElementById('openaiLoading').classList.remove('hidden');
+        document.getElementById('openaiResultContainer').classList.add('hidden');
+        
+        // Disable button during request
+        const button = document.querySelector('button[onclick="testOpenAIConnection()"]');
+        button.disabled = true;
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+        
         const response = await fetch('/settings/api/settings/openai/test-connection', {
             method: 'POST',
             headers: {
@@ -824,20 +838,34 @@ async function testOpenAIConnection() {
         });
 
         const data = await response.json();
-        const resultsDiv = document.getElementById('openaiResults');
+        
+        // Hide loading spinner
+        document.getElementById('openaiLoading').classList.add('hidden');
+        document.getElementById('openaiResultContainer').classList.remove('hidden');
+        
         const resultsContent = document.getElementById('openaiResultsContent');
         
-        resultsDiv.classList.remove('hidden');
         if (data.success) {
             resultsContent.textContent = 'Connection successful! OpenAI is properly configured.';
         } else {
             resultsContent.textContent = 'Error: ' + data.error;
         }
+        
+        // Re-enable button
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
     } catch (error) {
-        const resultsDiv = document.getElementById('openaiResults');
+        // Hide loading spinner
+        document.getElementById('openaiLoading').classList.add('hidden');
+        document.getElementById('openaiResultContainer').classList.remove('hidden');
+        
         const resultsContent = document.getElementById('openaiResultsContent');
-        resultsDiv.classList.remove('hidden');
         resultsContent.textContent = 'Error testing connection: ' + error.message;
+        
+        // Re-enable button
+        const button = document.querySelector('button[onclick="testOpenAIConnection()"]');
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
     }
 }
 
