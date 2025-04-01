@@ -5,6 +5,7 @@ import os
 import json
 import uuid
 import time
+import datetime
 
 # Create blueprint
 settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
@@ -90,19 +91,45 @@ def test_appinsights_connection():
                 
                 # Format the results for display
                 formatted_rows = []
-                if 'tables' in data and len(data['tables']) > 0 and 'rows' in data['tables'][0]:
-                    for row in data['tables'][0]['rows']:
-                        formatted_rows.append(row)
-                    current_app.logger.info(f"Found {len(formatted_rows)} rows in response")
+                column_names = []
+                
+                if 'tables' in data and len(data['tables']) > 0:
+                    # Get column information
+                    if 'columns' in data['tables'][0]:
+                        column_names = [col['name'] for col in data['tables'][0]['columns']]
+                        
+                    # Format rows with column names
+                    if 'rows' in data['tables'][0]:
+                        for row in data['tables'][0]['rows']:
+                            # Create dict with column names as keys
+                            row_dict = {}
+                            for i, col_name in enumerate(column_names):
+                                # Handle index errors gracefully
+                                if i < len(row):
+                                    row_dict[col_name] = row[i]
+                                else:
+                                    row_dict[col_name] = None
+                            formatted_rows.append(row_dict)
+                        current_app.logger.info(f"Found {len(formatted_rows)} rows in response")
+                    else:
+                        current_app.logger.warning("No rows found in response")
                 else:
-                    current_app.logger.warning("No rows found in response")
+                    current_app.logger.warning("No tables found in response")
+                
+                # Add metadata for better display
+                metadata = {
+                    'query_executed_at': datetime.datetime.now().isoformat(),
+                    'column_names': column_names,
+                    'total_records': len(formatted_rows)
+                }
                 
                 return jsonify({
                     'success': True,
                     'message': 'Successfully connected to Application Insights',
                     'query': query,
                     'rows_count': len(formatted_rows),
-                    'sample_data': formatted_rows[:3] if formatted_rows else []
+                    'sample_data': formatted_rows[:5] if formatted_rows else [],
+                    'metadata': metadata
                 })
             except json.JSONDecodeError as je:
                 # If we can't parse the JSON, return the raw content for debugging

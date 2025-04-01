@@ -9,6 +9,8 @@ import datetime
 import subprocess
 from pathlib import Path
 import logging
+import platform
+import socket
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -38,9 +40,27 @@ class ReportEnforcer:
             f.write(f"Session started: {self.session_start.isoformat()}\n")
             f.write(f"PID: {os.getpid()}\n")
     
+    def _is_port_in_use(self, port):
+        """Check if the specified port is already in use by another process"""
+        try:
+            # Try to bind to the port
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex(('localhost', port))
+            sock.close()
+            return result == 0  # If 0, port is in use
+        except Exception as e:
+            logger.warning(f"Error checking port {port}: {e}")
+            return False  # Assume port is not in use if there's an error
+
     def ensure_report_on_exit(self):
         """Ensure a report is generated when the program exits"""
         if not self.report_generated:
+            # Check if another app instance is running before generating report
+            if self._is_port_in_use(8080):
+                logger.info("Skipping auto-generation of build report because an app instance is already running on port 8080")
+                return
+                
             logger.warning("No build report was generated during this session! Generating one now...")
             try:
                 from app.utils.test_reporter import create_build_report
