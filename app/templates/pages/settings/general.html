@@ -270,13 +270,31 @@ traces
                             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Grafana URL</label>
-                                    <input type="text" 
+                                    <div class="flex rounded-md shadow-sm">
+                                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                            https://
+                                        </span>
+                                        <input type="text" 
                                            name="grafana_url"
                                            id="grafana_url"
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="https://your-grafana-instance.com"
+                                           class="flex-1 block w-full rounded-none rounded-r-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="your-grafana-instance.com"
                                            value="{{ grafana_url|default('') }}">
+                                    </div>
                                     <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
+                                    <div class="mt-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Common Grafana URLs</label>
+                                        <select 
+                                            id="common_grafana_urls" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            onchange="selectGrafanaUrl(this.value)">
+                                            <option value="">Select a common URL</option>
+                                            <option value="localhost:3000">localhost:3000</option>
+                                            <option value="localhost:8080">localhost:8080</option>
+                                            <option value="grafana.local">grafana.local</option>
+                                            <option value="127.0.0.1:3000">127.0.0.1:3000</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
@@ -795,7 +813,7 @@ async function testGrafanaConnection() {
 async function testGrafanaQuery() {
     const url = document.getElementById('grafana_url').value;
     const apiKey = document.getElementById('api_key').value;
-    const query = document.getElementById('grafana_query').value;
+    const query = document.getElementById('test_query').value;
     
     if (!query) {
         alert('Please enter a query');
@@ -1174,6 +1192,12 @@ async function runKustoQuery() {
         const button = document.getElementById('runKustoQueryBtn');
         button.disabled = false;
         button.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+}
+
+function selectGrafanaUrl(url) {
+    if (url) {
+        document.getElementById('grafana_url').value = url;
     }
 }
 </script>
