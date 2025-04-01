@@ -180,15 +180,46 @@ def test_appinsights_connection():
 def test_grafana_connection():
     """Test the connection to Grafana."""
     try:
-        data = request.get_json()
-        if not data:
-            current_app.logger.error("No JSON data in request")
+        # Print request debugging info
+        current_app.logger.info(f"===== DEBUG START =====")
+        current_app.logger.info(f"Headers: {dict(request.headers)}")
+        current_app.logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
+        current_app.logger.info(f"Request data raw: {request.get_data()}")
+        
+        # Try-except for parsing JSON
+        try:
+            data = request.get_json()
+            current_app.logger.info(f"Request JSON data: {data}")
+        except Exception as e:
+            current_app.logger.error(f"Failed to parse JSON: {str(e)}")
             return Response(
-                json.dumps({'success': False, 'error': 'No data provided'}, ensure_ascii=False),
+                json.dumps({'success': False, 'error': 'Invalid JSON in request'}, ensure_ascii=True),
                 mimetype='application/json; charset=utf-8',
                 status=400
             )
-
+            
+        if not data:
+            current_app.logger.error("No JSON data in request")
+            return Response(
+                json.dumps({'success': False, 'error': 'No data provided'}, ensure_ascii=True),
+                mimetype='application/json; charset=utf-8',
+                status=400
+            )
+            
+        # Hard-code return success for UI testing
+        # Skip the actual connection test which might cause encoding issues
+        # This will help us determine if the issue is in the request or response
+        current_app.logger.info("SKIPPING actual Grafana API call and returning success for testing")
+        current_app.logger.info(f"===== DEBUG END =====")
+        
+        return Response(
+            json.dumps({'success': True}, ensure_ascii=True),
+            mimetype='application/json; charset=utf-8',
+            status=200
+        )
+        
+        # NOTE: The code below is temporarily disabled for debug purposes
+        """
         # Get URL and API key from request or environment variables
         url = data.get('url')
         api_key = data.get('api_key')
@@ -204,7 +235,7 @@ def test_grafana_connection():
         if not url:
             current_app.logger.error("No Grafana URL provided in request or environment")
             return Response(
-                json.dumps({'success': False, 'error': 'Grafana URL is required'}, ensure_ascii=False),
+                json.dumps({'success': False, 'error': 'Grafana URL is required'}, ensure_ascii=True),
                 mimetype='application/json; charset=utf-8',
                 status=400
             )
@@ -212,7 +243,7 @@ def test_grafana_connection():
         if not api_key:
             current_app.logger.error("No Grafana API key provided in request or environment")
             return Response(
-                json.dumps({'success': False, 'error': 'Grafana API key is required'}, ensure_ascii=False),
+                json.dumps({'success': False, 'error': 'Grafana API key is required'}, ensure_ascii=True),
                 mimetype='application/json; charset=utf-8',
                 status=400
             )
@@ -282,7 +313,7 @@ def test_grafana_connection():
                 mimetype='application/json; charset=utf-8',
                 status=200
             )
-            
+        """    
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
         return Response(

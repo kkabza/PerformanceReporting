@@ -538,8 +538,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function testGrafanaConnection() {
+    console.log("Test Grafana connection called");
     const url = document.getElementById('grafana_url').value;
     const apiKey = document.getElementById('api_key').value;
+    
+    console.log("URL:", url);
+    console.log("API Key length:", apiKey.length);
     
     try {
         // Show loading spinner
@@ -552,45 +556,49 @@ async function testGrafanaConnection() {
         button.disabled = true;
         button.classList.add('opacity-75', 'cursor-not-allowed');
         
+        // Create a much simpler payload with no special characters
+        const payload = {
+            url: url,
+            api_key: apiKey
+        };
+        
+        console.log("Sending payload:", JSON.stringify(payload));
+        
+        // Use a simpler fetch with minimal options - UPDATE TO CORRECT ENDPOINT PATH
         const response = await fetch('/settings/api/grafana/test-connection', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Charset': 'utf-8'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey
-            })
+            body: JSON.stringify(payload)
         });
-
+        
+        console.log("Response status:", response.status);
+        
         // Hide loading spinner
         document.getElementById('grafanaLoading').classList.add('hidden');
         document.getElementById('grafanaResultContainer').classList.remove('hidden');
         
         const resultsContent = document.getElementById('grafanaResultsContent');
         
-        // Get response as text first to avoid JSON parse errors
+        // Get response as text first
         const responseText = await response.text();
-        let data;
+        console.log("Response text:", responseText);
         
+        let data;
         try {
             // Try to parse as JSON
             data = JSON.parse(responseText);
+            console.log("Parsed JSON:", data);
         } catch (e) {
-            // If response is not valid JSON, display error
+            console.error("JSON parse error:", e);
             resultsContent.innerHTML = `
                 <div class="bg-red-50 border-l-4 border-red-500 p-4">
                     <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium text-red-800">Invalid response from server</p>
                             <p class="text-sm text-red-700 mt-1">Response was not valid JSON</p>
+                            <p class="text-xs text-red-600 mt-1">Error: ${e.message}</p>
                         </div>
                     </div>
                 </div>`;
@@ -603,41 +611,18 @@ async function testGrafanaConnection() {
         }
         
         if (data.success) {
-            // Format Grafana Portal style result - simplified version
-            let resultHTML = `
+            resultsContent.innerHTML = `
                 <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
                     <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800">Connection successful! Grafana is properly configured.</p>
-                            <p class="text-xs text-green-700 mt-2">Health check passed successfully.</p>
+                            <p class="text-sm font-medium text-green-800">Connection successful!</p>
                         </div>
                     </div>
                 </div>`;
-            
-            // Add notice if provided
-            if (data.note) {
-                resultHTML += `
-                    <div class="mb-4 text-xs text-gray-600 italic">
-                        Note: ${data.note}
-                    </div>`;
-            }
-            
-            resultsContent.innerHTML = resultHTML;
         } else {
-            // Error formatting
             resultsContent.innerHTML = `
                 <div class="bg-red-50 border-l-4 border-red-500 p-4">
                     <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium text-red-800">Error connecting to Grafana</p>
                             <p class="text-sm text-red-700 mt-1">${data.error || 'Unknown error'}</p>
@@ -646,6 +631,7 @@ async function testGrafanaConnection() {
                 </div>`;
         }
     } catch (error) {
+        console.error("JavaScript error:", error);
         // Hide loading spinner
         document.getElementById('grafanaLoading').classList.add('hidden');
         document.getElementById('grafanaResultContainer').classList.remove('hidden');
@@ -654,11 +640,6 @@ async function testGrafanaConnection() {
         resultsContent.innerHTML = `
             <div class="bg-red-50 border-l-4 border-red-500 p-4">
                 <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
                     <div class="ml-3">
                         <p class="text-sm font-medium text-red-800">JavaScript Error</p>
                         <p class="text-sm text-red-700 mt-1">${error.message}</p>
@@ -676,10 +657,10 @@ async function testGrafanaConnection() {
 async function testGrafanaQuery() {
     const url = document.getElementById('grafana_url').value;
     const apiKey = document.getElementById('api_key').value;
-    const query = document.getElementById('test_query').value;
+    const query = document.getElementById('grafana_query').value;
     
     if (!query) {
-        alert('Please enter a query to test');
+        alert('Please enter a query');
         return;
     }
     
