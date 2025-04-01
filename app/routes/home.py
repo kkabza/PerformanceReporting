@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, current_app, redirect, url_for, session
+from flask import Blueprint, render_template, current_app, redirect, url_for, session, jsonify
 import os
 import sentry_sdk
 from app.utils.sentry_utils import capture_message, capture_exception
@@ -31,6 +31,24 @@ def test_sentry():
     capture_message("Sentry test message from Performance Reporting app", level="info")
     
     return "Sentry test successful! Check your Sentry dashboard for the test message."
+
+@home_bp.route('/debug-appinsights')
+def test_appinsights():
+    """Test endpoint for Azure Application Insights integration"""
+    app_id = os.getenv('APP_INSIGHTS_APPLICATION_ID')
+    api_key = os.getenv('APP_INSIGHTS_API_KEY')
+    
+    if not app_id or not api_key:
+        return "App Insights not properly configured. Check APP_INSIGHTS_APPLICATION_ID and APP_INSIGHTS_API_KEY environment variables."
+    
+    # Just display the credentials without making an actual API call
+    # The actual test will be performed by the settings endpoint
+    return jsonify({
+        'configured': True,
+        'message': 'App Insights is properly configured with environment variables.',
+        'app_id': app_id[:6] + '...' if app_id else None,  # Show only part of the ID for security
+        'api_key_set': bool(api_key)
+    })
 
 @home_bp.route('/debug-sentry-error')
 def trigger_error():

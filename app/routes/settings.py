@@ -1,6 +1,10 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, current_app
 from app.routes.auth import login_required
 import requests
+import os
+import json
+import uuid
+import time
 
 # Create blueprint
 settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
@@ -9,11 +13,134 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 @login_required
 def general():
     """General settings page route."""
-    return render_template('pages/settings/general.html')
+    # Get App Insights credentials for display in the template
+    app_insights_id = os.getenv('APP_INSIGHTS_APPLICATION_ID', '')
+    app_insights_key = os.getenv('APP_INSIGHTS_API_KEY', '')
+    
+    # Mask the API key for security
+    app_insights_key_masked = '••••••••' + app_insights_key[-4:] if app_insights_key and len(app_insights_key) > 4 else '••••••••'
+    
+    return render_template('pages/settings/general.html', 
+                           app_insights_id=app_insights_id,
+                           app_insights_key_masked=app_insights_key_masked)
 
 @settings_bp.route('/preferences')
 def preferences():
     return render_template('pages/settings/preferences.html')
+
+@settings_bp.route('/api/appinsights/test-connection', methods=['POST'])
+@login_required
+def test_appinsights_connection():
+    """Test connection to Application Insights using direct API approach."""
+    # Get App Insights credentials from environment
+    app_id = os.getenv('APP_INSIGHTS_APPLICATION_ID')
+    api_key = os.getenv('APP_INSIGHTS_API_KEY')
+    
+    # Log environment variable values for debugging (with masking for security)
+    current_app.logger.info(f"App Insights test connection requested")
+    current_app.logger.info(f"APP_INSIGHTS_APPLICATION_ID: {app_id[:4]}... (length: {len(app_id) if app_id else 0})")
+    current_app.logger.info(f"APP_INSIGHTS_API_KEY: {'*' * 8}... (length: {len(api_key) if api_key else 0})")
+    
+    # Check if credentials are available
+    if not app_id or not api_key:
+        error_msg = 'Missing Application Insights credentials. Check your environment variables.'
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False, 
+            'error': error_msg
+        }), 400
+
+    # Debug output to help with troubleshooting
+    debug_info = {
+        'app_id': app_id[:4] + '...' if app_id and len(app_id) > 4 else 'Not set',
+        'api_key_length': len(api_key) if api_key else 0,
+        'env_vars': {k: v[:4] + '...' if v and len(v) > 4 else v for k, v in os.environ.items() if 'APP_INSIGHTS' in k or 'AZURE' in k}
+    }
+
+    try:
+        # Define a simple query to get recent traces
+        query = "traces | top 5 by timestamp desc"
+        
+        # Build the URL for the query API
+        url = f"https://api.applicationinsights.io/v1/apps/{app_id}/query"
+        current_app.logger.info(f"Making App Insights API request to URL: {url}")
+        
+        # Set up headers with the API key
+        headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        # Set query parameters
+        params = {
+            "query": query
+        }
+        
+        current_app.logger.info(f"Making App Insights API request with query: {query}")
+        
+        # Send the request
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        current_app.logger.info(f"App Insights API response status: {response.status_code}")
+        
+        # Check response status
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                current_app.logger.info("Successfully parsed JSON response")
+                
+                # Format the results for display
+                formatted_rows = []
+                if 'tables' in data and len(data['tables']) > 0 and 'rows' in data['tables'][0]:
+                    for row in data['tables'][0]['rows']:
+                        formatted_rows.append(row)
+                    current_app.logger.info(f"Found {len(formatted_rows)} rows in response")
+                else:
+                    current_app.logger.warning("No rows found in response")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Successfully connected to Application Insights',
+                    'query': query,
+                    'rows_count': len(formatted_rows),
+                    'sample_data': formatted_rows[:3] if formatted_rows else []
+                })
+            except json.JSONDecodeError as je:
+                # If we can't parse the JSON, return the raw content for debugging
+                error_msg = f'Invalid JSON response: {str(je)}'
+                current_app.logger.error(error_msg)
+                current_app.logger.error(f"Raw response: {response.text[:500]}")
+                return jsonify({
+                    'success': False,
+                    'error': error_msg,
+                    'raw_response': response.text[:500],  # Limit to first 500 chars
+                    'debug_info': debug_info
+                }), 400
+        else:
+            # Try to interpret the response content
+            try:
+                error_data = response.json()
+                error_message = error_data.get('error', {}).get('message', str(error_data))
+            except:
+                error_message = response.text[:500] if response.text else f"Status code: {response.status_code}"
+            
+            error_msg = f'Error {response.status_code}: {error_message}'
+            current_app.logger.error(error_msg)
+            current_app.logger.error(f"Raw response: {response.text[:500]}")
+            
+            return jsonify({
+                'success': False, 
+                'error': error_msg,
+                'debug_info': debug_info
+            }), 400
+
+    except requests.exceptions.RequestException as e:
+        error_msg = f'Connection error: {str(e)}'
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False,
+            'error': error_msg,
+            'debug_info': debug_info
+        }), 400
 
 @settings_bp.route('/api/settings/grafana/test-connection', methods=['POST'])
 @login_required
