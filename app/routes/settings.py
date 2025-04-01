@@ -209,11 +209,14 @@ def test_grafana_connection():
         # Test connection to Grafana
         headers = {
             'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept': 'application/json',
+            'Accept-Charset': 'utf-8'
         }
         
         # Test basic health endpoint
         health_response = requests.get(f"{url}/api/health", headers=headers, timeout=10)
+        health_response.encoding = 'utf-8'
         
         if health_response.status_code != 200:
             return jsonify({
@@ -221,33 +224,64 @@ def test_grafana_connection():
                 'error': f'Failed to connect to Grafana: HTTP {health_response.status_code}'
             })
         
-        health_data = health_response.json()
-        
-        # Get additional info about the Grafana instance
-        response_data = {
-            'success': True,
-            'version': health_data.get('version', 'Unknown'),
-            'database': health_data.get('database', 'Unknown')
-        }
-        
-        # Try to get datasources info
         try:
-            datasources_response = requests.get(f"{url}/api/datasources", headers=headers, timeout=10)
-            if datasources_response.status_code == 200:
-                datasources = datasources_response.json()
-                response_data['datasources_count'] = len(datasources)
-                response_data['datasources'] = datasources
-            else:
-                current_app.logger.warning(f"Could not fetch datasources: {datasources_response.status_code}")
+            health_data = health_response.json()
+            
+            # Get additional info about the Grafana instance
+            response_data = {
+                'success': True,
+                'version': str(health_data.get('version', 'Unknown')),
+                'database': str(health_data.get('database', 'Unknown'))
+            }
+            
+            # Try to get datasources info
+            try:
+                datasources_response = requests.get(f"{url}/api/datasources", headers=headers, timeout=10)
+                datasources_response.encoding = 'utf-8'
+                
+                if datasources_response.status_code == 200:
+                    datasources = datasources_response.json()
+                    response_data['datasources_count'] = len(datasources)
+                    
+                    # Process datasources safely
+                    safe_datasources = []
+                    for ds in datasources:
+                        # Create a safe copy with only essential fields
+                        safe_ds = {
+                            'id': ds.get('id', 0),
+                            'name': str(ds.get('name', 'Unnamed')),
+                            'type': str(ds.get('type', 'Unknown')),
+                            'url': str(ds.get('url', ''))
+                        }
+                        safe_datasources.append(safe_ds)
+                    
+                    response_data['datasources'] = safe_datasources
+                else:
+                    current_app.logger.warning(f"Could not fetch datasources: {datasources_response.status_code}")
+            except Exception as e:
+                current_app.logger.warning(f"Error fetching datasources: {str(e)}")
+                # Add error info but continue
+                response_data['datasources_error'] = 'Could not fetch datasources'
+            
+            # Convert to JSON-safe format with ensure_ascii=False to handle Unicode
+            return current_app.response_class(
+                json.dumps(response_data, ensure_ascii=False),
+                mimetype='application/json; charset=utf-8'
+            )
         except Exception as e:
-            current_app.logger.warning(f"Error fetching datasources: {str(e)}")
+            # Handle JSON parsing errors
+            current_app.logger.error(f"Error parsing Grafana response: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': 'Error processing Grafana response'
+            })
         
-        return jsonify(response_data)
-        
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
+        error_msg = 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
+        current_app.logger.error(f"Grafana connection error: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
+            'error': error_msg
         })
     except requests.exceptions.Timeout:
         return jsonify({
@@ -255,10 +289,11 @@ def test_grafana_connection():
             'error': 'Connection to Grafana server timed out. The server may be busy or unreachable.'
         })
     except Exception as e:
+        # Provide a generic error message for any encoding or other errors
         current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'An error occurred: {str(e)}'
+            'error': 'An error occurred with the Grafana connection. Please check the logs for details.'
         })
 
 @settings_bp.route('/api/grafana/test-query', methods=['POST'])
@@ -298,11 +333,12 @@ def test_grafana_query():
         # Set up headers for API request
         headers = {
             'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept': 'application/json',
+            'Accept-Charset': 'utf-8'
         }
         
         # Execute the query through the Grafana API
-        # This is a simplified example - modify as needed for your specific Grafana version and requirements
         current_time = int(time.time())
         one_hour_ago = current_time - 3600
         
@@ -326,18 +362,37 @@ def test_grafana_query():
             timeout=30
         )
         
+        response.encoding = 'utf-8'
+        
         if response.status_code != 200:
+            # Handle non-success response
+            error_text = response.text[:500] if response.text else f"HTTP {response.status_code}"
             return jsonify({
                 'success': False,
-                'error': f'Query failed: HTTP {response.status_code} - {response.text}'
+                'error': f'Query failed: {error_text}'
             })
         
-        return jsonify({
-            'success': True,
-            'results': response.json()
-        })
+        # Process response to handle any encoding issues
+        try:
+            result_data = response.json()
+            
+            # Safely convert to JSON with UTF-8 encoding
+            return current_app.response_class(
+                json.dumps({
+                    'success': True,
+                    'results': result_data
+                }, ensure_ascii=False),
+                mimetype='application/json; charset=utf-8'
+            )
+        except json.JSONDecodeError as e:
+            current_app.logger.error(f"Failed to parse Grafana response: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to parse response: {str(e)}'
+            })
         
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
+        current_app.logger.error(f"Grafana connection error: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
@@ -348,8 +403,9 @@ def test_grafana_query():
             'error': 'Query timed out. The query may be too complex or the server is busy.'
         })
     except Exception as e:
+        # Generic error handler for any issues
         current_app.logger.error(f"Error executing Grafana query: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'An error occurred: {str(e)}'
+            'error': 'An error occurred with the Grafana query. Please check the logs for details.'
         }) 
