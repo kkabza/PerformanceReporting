@@ -811,7 +811,7 @@ async function testOpenAIConnection() {
     }
 
     try {
-        const response = await fetch('/api/settings/openai/test-connection', {
+        const response = await fetch('/settings/api/settings/openai/test-connection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
