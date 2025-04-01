@@ -139,7 +139,7 @@
             <div id="grafana" class="tab-content hidden">
                 <div class="p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-6">Grafana API Configuration</h3>
-                    <form class="space-y-8">
+                    <form class="space-y-8" id="grafanaForm">
                         <!-- Connection Settings -->
                         <div>
                             <h4 class="text-md font-medium text-gray-800 mb-4">Connection Settings</h4>
@@ -147,6 +147,8 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Grafana URL</label>
                                     <input type="text" 
+                                           name="grafana_url"
+                                           id="grafana_url"
                                            class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
                                            placeholder="https://your-grafana-instance.com">
                                     <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
@@ -154,110 +156,48 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
                                     <input type="password" 
+                                           name="api_key"
+                                           id="api_key"
                                            class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
-                                    <p class="mt-1 text-sm text-gray-500">API key with Editor permissions</p>
+                                    <p class="mt-1 text-sm text-gray-500">API key with Viewer permissions</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- JMeter Data Settings -->
+                        <!-- Test Query -->
                         <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">JMeter Test Data Settings</h4>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
+                            <div class="grid grid-cols-1 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Source Name</label>
-                                    <input type="text" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="jmeter-results">
-                                    <p class="mt-1 text-sm text-gray-500">Grafana data source for JMeter results</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Query</label>
+                                    <textarea
+                                        name="test_query"
+                                        id="test_query"
+                                        rows="3"
+                                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                        placeholder="Enter your Grafana query here"></textarea>
+                                    <p class="mt-1 text-sm text-gray-500">Example: rate(http_requests_total[5m])</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Metrics Prefix</label>
-                                    <input type="text" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="jmeter.performance">
-                                    <p class="mt-1 text-sm text-gray-500">Prefix for JMeter metrics in Grafana</p>
+                                <div class="flex justify-end space-x-4">
+                                    <button type="button"
+                                            onclick="testGrafanaConnection()"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-plug mr-2"></i>
+                                        Test Connection
+                                    </button>
+                                    <button type="button"
+                                            onclick="testGrafanaQuery()"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Run Query
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Dashboard Settings -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">Dashboard Settings</h4>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Default Dashboard UID</label>
-                                    <input type="text" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="performance-overview">
-                                    <p class="mt-1 text-sm text-gray-500">Default dashboard to display performance data</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization ID</label>
-                                    <input type="text" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="1">
-                                    <p class="mt-1 text-sm text-gray-500">Grafana organization ID</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Query Settings -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">Query Settings</h4>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
-                                    <select class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
-                                        <option value="15m">Last 15 minutes</option>
-                                        <option value="30m">Last 30 minutes</option>
-                                        <option value="1h">Last 1 hour</option>
-                                        <option value="3h">Last 3 hours</option>
-                                        <option value="6h">Last 6 hours</option>
-                                        <option value="12h">Last 12 hours</option>
-                                        <option value="24h" selected>Last 24 hours</option>
-                                        <option value="7d">Last 7 days</option>
-                                    </select>
-                                    <p class="mt-1 text-sm text-gray-500">Default time range for queries</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Refresh Interval (seconds)</label>
-                                    <input type="number" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           min="5"
-                                           max="3600"
-                                           value="30">
-                                    <p class="mt-1 text-sm text-gray-500">How often to refresh the dashboard data</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Metric Thresholds -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">Performance Thresholds</h4>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Response Time Warning (ms)</label>
-                                    <input type="number" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           value="1000">
-                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for response time</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Error Rate Warning (%)</label>
-                                    <input type="number" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           min="0"
-                                           max="100"
-                                           value="5">
-                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for error rate</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Throughput Warning (req/s)</label>
-                                    <input type="number" 
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           value="100">
-                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for throughput</p>
+                            <!-- Query Results -->
+                            <div id="queryResults" class="mt-4 hidden">
+                                <h4 class="text-md font-medium text-gray-800 mb-2">Query Results</h4>
+                                <div class="bg-gray-100 rounded-md p-4">
+                                    <pre id="queryResultsContent" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
                                 </div>
                             </div>
                         </div>
@@ -297,10 +237,7 @@
         </div>
     </main>
 </div>
-{% endblock %}
 
-{% block scripts %}
-{{ super() }}
 <script>
 function switchTab(tabId) {
     // Hide all tab contents
@@ -328,5 +265,78 @@ function switchTab(tabId) {
 document.addEventListener('DOMContentLoaded', function() {
     switchTab('devops');
 });
+
+async function testGrafanaConnection() {
+    const url = document.getElementById('grafana_url').value;
+    const apiKey = document.getElementById('api_key').value;
+    
+    if (!url || !apiKey) {
+        alert('Please enter both Grafana URL and API Key');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/settings/grafana/test-connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Connection successful!');
+        } else {
+            alert('Connection failed: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error testing connection: ' + error.message);
+    }
+}
+
+async function testGrafanaQuery() {
+    const url = document.getElementById('grafana_url').value;
+    const apiKey = document.getElementById('api_key').value;
+    const query = document.getElementById('test_query').value;
+    
+    if (!url || !apiKey || !query) {
+        alert('Please enter Grafana URL, API Key, and Query');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/settings/grafana/test-query', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey,
+                query: query
+            })
+        });
+
+        const data = await response.json();
+        const resultsDiv = document.getElementById('queryResults');
+        const resultsContent = document.getElementById('queryResultsContent');
+        
+        resultsDiv.classList.remove('hidden');
+        if (data.success) {
+            resultsContent.textContent = JSON.stringify(data.results, null, 2);
+        } else {
+            resultsContent.textContent = 'Error: ' + data.error;
+        }
+    } catch (error) {
+        const resultsDiv = document.getElementById('queryResults');
+        const resultsContent = document.getElementById('queryResultsContent');
+        resultsDiv.classList.remove('hidden');
+        resultsContent.textContent = 'Error executing query: ' + error.message;
+    }
+}
 </script>
 {% endblock %} 
