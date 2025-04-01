@@ -806,34 +806,17 @@ async function testAppInsightsConnection() {
 document.addEventListener('DOMContentLoaded', function() {
     switchTab('devops');
     
-    // Check if we have a Grafana API key from the server
-    const apiKey = "{{ grafana_api_key|default('') }}";
-    const apiKeyField = document.getElementById('api_key').value;
-    
-    if (!apiKeyField || apiKeyField.trim() === '') {
-        if (apiKey && apiKey.trim() !== '') {
-            // Load it into the field
-            loadApiKeyFromEnv();
-        } else {
-            // Show error notification
-            setTimeout(() => {
-                showNotification("No Grafana API key found in environment variables. Please check your .env file.", "error");
-            }, 1000); // Slight delay to make sure UI is fully loaded
-        }
-    }
+    // Set the Grafana API key directly
+    const apiKey = "TKbFkhEnwHiOFnIwVRAI4VNZoIKD2FaM5S1XTpE_En8nJdQ6BXBjXT1JBDjy3dXCAuMYe33zqqqCpMmXK1TLZA==";
+    document.getElementById('api_key').value = apiKey;
+    showNotification("Grafana API key loaded successfully", "success");
 });
 
 async function testGrafanaConnection() {
     console.log("Test Grafana connection called");
     const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
-    
-    // Ensure we have the API key - if the API key field has a masked value, get the real key from the data attribute
-    if (!apiKey || apiKey.trim() === '' || apiKey.includes('•')) {
-        // Use the server-provided API key stored in a data attribute
-        apiKey = "{{ grafana_api_key }}";
-        console.log("Using API key from environment variables");
-    }
+    // Use the hardcoded API key directly
+    let apiKey = "TKbFkhEnwHiOFnIwVRAI4VNZoIKD2FaM5S1XTpE_En8nJdQ6BXBjXT1JBDjy3dXCAuMYe33zqqqCpMmXK1TLZA==";
     
     console.log("URL:", url);
     console.log("API Key length:", apiKey.length);
@@ -949,15 +932,9 @@ async function testGrafanaConnection() {
 
 async function testGrafanaQuery() {
     const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
+    // Use the hardcoded API key directly  
+    let apiKey = "TKbFkhEnwHiOFnIwVRAI4VNZoIKD2FaM5S1XTpE_En8nJdQ6BXBjXT1JBDjy3dXCAuMYe33zqqqCpMmXK1TLZA==";
     const query = document.getElementById('test_query').value;
-    
-    // Ensure we have the API key - if the API key field has a masked value, get the real key from the data attribute
-    if (!apiKey || apiKey.trim() === '' || apiKey.includes('•')) {
-        // Use the server-provided API key stored in a data attribute
-        apiKey = "{{ grafana_api_key }}";
-        console.log("Using API key from environment variables");
-    }
     
     if (!query) {
         showNotification('Please enter a query', 'warning');
@@ -1379,23 +1356,18 @@ function copyApiKey() {
 }
 
 function loadApiKeyFromEnv() {
-    // Get API key from environment variables through template variable
-    const apiKey = "{{ grafana_api_key|default('') }}";
+    // Use hardcoded API key instead of environment variable
+    const apiKey = "TKbFkhEnwHiOFnIwVRAI4VNZoIKD2FaM5S1XTpE_En8nJdQ6BXBjXT1JBDjy3dXCAuMYe33zqqqCpMmXK1TLZA==";
     
-    if (apiKey) {
-        document.getElementById('api_key').value = apiKey;
-        document.getElementById('api_key_container').classList.add('border', 'border-green-500');
-        
-        // Flash effect to indicate successful loading
-        setTimeout(() => {
-            document.getElementById('api_key_container').classList.remove('border', 'border-green-500');
-        }, 2000);
-        
-        showNotification("API key loaded successfully from environment variables", "success");
-        console.log("API key loaded from environment variables");
-    } else {
-        showNotification("No API key found in environment variables. Please check your .env file.", "error");
-    }
+    document.getElementById('api_key').value = apiKey;
+    document.getElementById('api_key_container').classList.add('border', 'border-green-500');
+    
+    // Flash effect to indicate successful loading
+    setTimeout(() => {
+        document.getElementById('api_key_container').classList.remove('border', 'border-green-500');
+    }, 2000);
+    
+    showNotification("API key loaded successfully", "success");
 }
 </script>
 {% endblock %} 
