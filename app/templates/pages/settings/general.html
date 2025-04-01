@@ -361,7 +361,7 @@ async function testAppInsightsConnection() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({})  // No connection string needed, using environment variables
+            body: JSON.stringify({})  // Using environment variables from backend
         });
 
         const data = await response.json();
