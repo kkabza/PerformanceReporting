@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, current_app, redirect, url_for
+from flask import Blueprint, render_template, current_app, redirect, url_for, session
 import os
 import sentry_sdk
 from app.utils.sentry_utils import capture_message, capture_exception

@@ -2,6 +2,13 @@
 import os
 import sys
 import importlib.util
+from flask import Flask
+from flask_assets import Environment, Bundle
+from app.routes.home import home_bp
+from app.routes.auth import auth_bp
+from app.routes.settings import settings_bp
+import logging
+from app.utils.sentry_utils import init_sentry
 
 # This tracks whether we're in the process of importing the app
 _importing_app = False
@@ -12,7 +19,6 @@ def get_app():
     
     # If we're already in the process of importing the app, return None
     if _importing_app:
-        import logging
         logging.getLogger(__name__).warning(
             "Circular import detected in app/__init__.py. Returning None for app."
         )
@@ -33,16 +39,25 @@ def get_app():
         elif hasattr(app_module, "create_app"):
             return app_module.create_app()
         else:
-            import logging
             logging.getLogger(__name__).error("Could not find Flask app instance in app.py")
             return None
     except Exception as e:
-        import logging
         logging.getLogger(__name__).error(f"Error importing app.py: {e}")
         return None
     finally:
         # Reset the importing flag
         _importing_app = False
+
+def create_app():
+    """Create and configure the Flask application."""
+    app = Flask(__name__)
+    
+    # Register blueprints
+    app.register_blueprint(home_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(settings_bp)
+    
+    # ... existing code ...
 
 # Export the app instance
 app = get_app() 

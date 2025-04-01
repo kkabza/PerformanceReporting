@@ -7,12 +7,19 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <!-- Tailwind CSS -->
-    {% if config.FLASK_ENV == 'development' %}
-    <!-- TODO: For production, install Tailwind CSS via npm and build with postcss -->
     <script src="https://cdn.tailwindcss.com"></script>
-    {% else %}
-    <link href="{{ url_for('static', filename='css/tailwind.min.css') }}" rel="stylesheet">
-    {% endif %}
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a56db',
+                        secondary: '#7c3aed'
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Build version -->

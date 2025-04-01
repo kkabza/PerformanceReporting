@@ -1,0 +1,133 @@
+{% extends "layouts/authenticated.html" %}
+
+{% block title %}User Preferences - Performance Portal{% endblock %}
+
+{% block page_content %}
+<div class="min-h-screen bg-gray-100">
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        User Preferences
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg">
+            <div class="p-6">
+                <form class="space-y-6">
+                    <!-- Theme Settings -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-medium text-gray-700">Theme Settings</h4>
+                        <div class="flex items-center space-x-4">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="theme-switch">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                <span class="ml-3 text-sm font-medium text-gray-700">Dark Mode</span>
+                            </label>
+                            <span class="text-sm text-gray-500">Automatically switch based on system preferences</span>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-medium text-gray-700">Notification Settings</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="email-notifications" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="email-notifications" class="ml-2 block text-sm text-gray-700">Email Notifications</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="browser-notifications" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="browser-notifications" class="ml-2 block text-sm text-gray-700">Browser Notifications</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="performance-alerts" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="performance-alerts" class="ml-2 block text-sm text-gray-700">Performance Alerts</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display Settings -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-medium text-gray-700">Display Settings</h4>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Default Dashboard View</label>
+                                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option>Overview</option>
+                                    <option>Detailed</option>
+                                    <option>Compact</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Time Zone</label>
+                                <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option>UTC</option>
+                                    <option>Local Time</option>
+                                    <option>Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Language Settings -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-medium text-gray-700">Language Settings</h4>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Interface Language</label>
+                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option>English</option>
+                                <option>Spanish</option>
+                                <option>French</option>
+                                <option>German</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Theme switcher functionality
+document.getElementById('theme-switch').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    // Save preference to localStorage
+    localStorage.setItem('theme', e.target.checked ? 'dark' : 'light');
+});
+
+// Initialize theme from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    const themeSwitch = document.getElementById('theme-switch');
+    
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        themeSwitch.checked = true;
+    } else {
+        document.documentElement.classList.remove('dark');
+        themeSwitch.checked = false;
+    }
+});
+</script>
+{% endblock %} 

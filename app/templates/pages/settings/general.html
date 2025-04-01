@@ -1,0 +1,332 @@
+{% extends "layouts/authenticated.html" %}
+
+{% block title %}General Settings - Performance Portal{% endblock %}
+
+{% block page_content %}
+<div class="min-h-screen bg-gray-100">
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        General Settings
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Tabs -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active" 
+                        onclick="switchTab('devops')" 
+                        data-tab="devops">
+                    <i class="fas fa-code-branch mr-2"></i>
+                    DevOps
+                </button>
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" 
+                        onclick="switchTab('app-insights')" 
+                        data-tab="app-insights">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    App Insights
+                </button>
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" 
+                        onclick="switchTab('grafana')" 
+                        data-tab="grafana">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Grafana API
+                </button>
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" 
+                        onclick="switchTab('azure-openai')" 
+                        data-tab="azure-openai">
+                    <i class="fas fa-brain mr-2"></i>
+                    Azure OpenAI
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="bg-white shadow rounded-lg mt-6">
+            <!-- DevOps Settings -->
+            <div id="devops" class="tab-content active">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">Azure DevOps Configuration</h3>
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Organization URL</label>
+                                <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">
+                                        https://
+                                    </span>
+                                    <input type="text" 
+                                           class="flex-1 block w-full rounded-none rounded-r-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200" 
+                                           placeholder="dev.azure.com/organization">
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Your Azure DevOps organization URL</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                <input type="text" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200" 
+                                       placeholder="Project name">
+                                <p class="mt-1 text-sm text-gray-500">The project to query for performance data</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Personal Access Token (PAT)</label>
+                                <input type="password" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                <p class="mt-1 text-sm text-gray-500">PAT with Work Items (Read) scope</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Query Path</label>
+                                <input type="text" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200" 
+                                       placeholder="/Shared Queries/Performance">
+                                <p class="mt-1 text-sm text-gray-500">Path to your Azure DevOps query</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Query Refresh Interval (minutes)</label>
+                                <input type="number" 
+                                       min="5" 
+                                       max="1440" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200" 
+                                       value="30">
+                                <p class="mt-1 text-sm text-gray-500">How often to refresh the query data</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Max Results</label>
+                                <input type="number" 
+                                       min="1" 
+                                       max="20000" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200" 
+                                       value="1000">
+                                <p class="mt-1 text-sm text-gray-500">Maximum number of work items to retrieve</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- App Insights Settings -->
+            <div id="app-insights" class="tab-content hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">App Insights Configuration</h3>
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Instrumentation Key</label>
+                                <input type="text" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampling Rate (%)</label>
+                                <input type="number" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Grafana API Settings -->
+            <div id="grafana" class="tab-content hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">Grafana API Configuration</h3>
+                    <form class="space-y-8">
+                        <!-- Connection Settings -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-800 mb-4">Connection Settings</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Grafana URL</label>
+                                    <input type="text" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="https://your-grafana-instance.com">
+                                    <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                                    <input type="password" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                    <p class="mt-1 text-sm text-gray-500">API key with Editor permissions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- JMeter Data Settings -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-800 mb-4">JMeter Test Data Settings</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Source Name</label>
+                                    <input type="text" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="jmeter-results">
+                                    <p class="mt-1 text-sm text-gray-500">Grafana data source for JMeter results</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Metrics Prefix</label>
+                                    <input type="text" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="jmeter.performance">
+                                    <p class="mt-1 text-sm text-gray-500">Prefix for JMeter metrics in Grafana</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Settings -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-800 mb-4">Dashboard Settings</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Default Dashboard UID</label>
+                                    <input type="text" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="performance-overview">
+                                    <p class="mt-1 text-sm text-gray-500">Default dashboard to display performance data</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization ID</label>
+                                    <input type="text" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           placeholder="1">
+                                    <p class="mt-1 text-sm text-gray-500">Grafana organization ID</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Query Settings -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-800 mb-4">Query Settings</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
+                                    <select class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                        <option value="15m">Last 15 minutes</option>
+                                        <option value="30m">Last 30 minutes</option>
+                                        <option value="1h">Last 1 hour</option>
+                                        <option value="3h">Last 3 hours</option>
+                                        <option value="6h">Last 6 hours</option>
+                                        <option value="12h">Last 12 hours</option>
+                                        <option value="24h" selected>Last 24 hours</option>
+                                        <option value="7d">Last 7 days</option>
+                                    </select>
+                                    <p class="mt-1 text-sm text-gray-500">Default time range for queries</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Refresh Interval (seconds)</label>
+                                    <input type="number" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           min="5"
+                                           max="3600"
+                                           value="30">
+                                    <p class="mt-1 text-sm text-gray-500">How often to refresh the dashboard data</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metric Thresholds -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-800 mb-4">Performance Thresholds</h4>
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Response Time Warning (ms)</label>
+                                    <input type="number" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           value="1000">
+                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for response time</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Error Rate Warning (%)</label>
+                                    <input type="number" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           min="0"
+                                           max="100"
+                                           value="5">
+                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for error rate</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Throughput Warning (req/s)</label>
+                                    <input type="number" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           value="100">
+                                    <p class="mt-1 text-sm text-gray-500">Warning threshold for throughput</p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Azure OpenAI Settings -->
+            <div id="azure-openai" class="tab-content hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">Azure OpenAI Configuration</h3>
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Endpoint</label>
+                                <input type="text" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                                <input type="password" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="px-6 py-4 bg-gray-50 rounded-b-lg">
+                <div class="flex justify-end">
+                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function switchTab(tabId) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab content
+    const selectedContent = document.getElementById(tabId);
+    selectedContent.classList.remove('hidden');
+    
+    // Set active tab button
+    const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
+    selectedButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    selectedButton.classList.add('border-blue-500', 'text-blue-600');
+}
+
+// Initialize tabs
+document.addEventListener('DOMContentLoaded', function() {
+    switchTab('devops');
+});
+</script>
+{% endblock %} 

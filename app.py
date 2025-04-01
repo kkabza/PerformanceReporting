@@ -11,6 +11,7 @@ import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from app.routes.home import home_bp
 from app.routes.auth import auth_bp
+from app.routes.settings import settings_bp
 from dotenv import load_dotenv
 from config import get_config
 
@@ -70,6 +71,7 @@ def create_app(config_class=None):
     # Register blueprints
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(settings_bp)
     
     # Context processor to inject build version into all templates
     @app.context_processor

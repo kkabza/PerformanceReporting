@@ -6,6 +6,27 @@ import sys
 import sentry_sdk
 from flask import current_app, request, session
 import traceback
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+def init_sentry(app):
+    """
+    Initialize Sentry for the Flask application.
+    
+    Args:
+        app: Flask application instance
+    """
+    if not os.getenv('SENTRY_DSN'):
+        app.logger.warning('SENTRY_DSN not set, skipping Sentry initialization')
+        return
+        
+    sentry_sdk.init(
+        dsn=os.getenv('SENTRY_DSN'),
+        integrations=[FlaskIntegration()],
+        environment=os.getenv('FLASK_ENV', 'development'),
+        traces_sample_rate=1.0,
+        send_default_pii=True
+    )
+    app.logger.info('Sentry initialized in %s environment', os.getenv('FLASK_ENV', 'development'))
 
 def set_user_context(user_id=None, username=None, email=None):
     """
