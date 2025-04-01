@@ -26,11 +26,12 @@ def general():
     # Mask the API key for security
     grafana_api_key_masked = "•" * len(grafana_api_key) if grafana_api_key else ''
     
-    # Get OpenAI endpoint and deployment from environment, but NOT the API key
+    # Get OpenAI endpoint and deployment from environment, and load API key
     openai_endpoint = os.getenv('OPENAI_API_ENDPOINT', 'https://api.openai.com/v1')
+    openai_api_key = os.getenv('OPENAI_API_KEY', '')
     openai_deployment = os.getenv('OPENAI_DEPLOYMENT', 'gpt-3.5-turbo')
-    # Empty API key masked value - don't load from .env by default
-    openai_api_key_masked = ''
+    # Mask the API key for security
+    openai_api_key_masked = "•" * len(openai_api_key) if openai_api_key else ''
     
     return render_template('pages/settings/general.html', 
                            app_insights_url=app_insights_url,
