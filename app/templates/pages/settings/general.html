@@ -178,7 +178,8 @@
                                            name="grafana_url"
                                            id="grafana_url"
                                            class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="https://your-grafana-instance.com">
+                                           placeholder="https://your-grafana-instance.com"
+                                           value="{{ grafana_url|default('') }}">
                                     <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
                                 </div>
                                 <div>
@@ -186,7 +187,8 @@
                                     <input type="password" 
                                            name="api_key"
                                            id="api_key"
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                           value="{{ grafana_api_key_masked|default('') }}">
                                     <p class="mt-1 text-sm text-gray-500">API key with Viewer permissions</p>
                                 </div>
                             </div>
@@ -208,12 +210,14 @@
                                 </div>
                                 <div class="flex justify-end space-x-4">
                                     <button type="button"
+                                            id="testGrafanaBtn"
                                             onclick="testGrafanaConnection()"
                                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <i class="fas fa-plug mr-2"></i>
                                         Test Connection
                                     </button>
                                     <button type="button"
+                                            id="testGrafanaQueryBtn"
                                             onclick="testGrafanaQuery()"
                                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                         <i class="fas fa-play mr-2"></i>
@@ -222,10 +226,14 @@
                                 </div>
                             </div>
                             <!-- Query Results -->
-                            <div id="queryResults" class="mt-4 hidden">
-                                <h4 class="text-md font-medium text-gray-800 mb-2">Query Results</h4>
-                                <div class="bg-gray-100 rounded-md p-4">
-                                    <pre id="queryResultsContent" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
+                            <div id="grafanaResults" class="mt-4 hidden">
+                                <h4 class="text-md font-medium text-gray-800 mb-2">Connection Results</h4>
+                                <!-- Loading Spinner -->
+                                <div id="grafanaLoading" class="flex justify-center my-8 hidden">
+                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                                </div>
+                                <div id="grafanaResultContainer" class="bg-gray-100 rounded-md p-4">
+                                    <div id="grafanaResultsContent" class="text-sm text-gray-700"></div>
                                 </div>
                             </div>
                         </div>
@@ -533,12 +541,17 @@ async function testGrafanaConnection() {
     const url = document.getElementById('grafana_url').value;
     const apiKey = document.getElementById('api_key').value;
     
-    if (!url || !apiKey) {
-        alert('Please enter both Grafana URL and API Key');
-        return;
-    }
-
     try {
+        // Show loading spinner
+        document.getElementById('grafanaResults').classList.remove('hidden');
+        document.getElementById('grafanaLoading').classList.remove('hidden');
+        document.getElementById('grafanaResultContainer').classList.add('hidden');
+        
+        // Disable button during request
+        const button = document.getElementById('testGrafanaBtn');
+        button.disabled = true;
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+        
         const response = await fetch('/api/settings/grafana/test-connection', {
             method: 'POST',
             headers: {
@@ -551,13 +564,127 @@ async function testGrafanaConnection() {
         });
 
         const data = await response.json();
+        
+        // Hide loading spinner
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        document.getElementById('grafanaResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('grafanaResultsContent');
+        
         if (data.success) {
-            alert('Connection successful!');
+            // Format Grafana Portal style result
+            let resultHTML = `
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800">Connection successful! Grafana is properly configured.</p>
+                        </div>
+                    </div>
+                </div>`;
+                
+            // Add version info if available
+            if (data.version) {
+                resultHTML += `
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Grafana Information</h5>
+                        <div class="flex items-center text-sm">
+                            <svg class="mr-2 h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Version: <span class="font-medium">${data.version}</span></span>
+                        </div>
+                    </div>`;
+            }
+            
+            // Add datasource info if available
+            if (data.datasources_count) {
+                resultHTML += `
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Datasources</h5>
+                        <div class="flex items-center text-sm mb-2">
+                            <svg class="mr-2 h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3z M9 17v-6 M12 17v-10 M15 17v-3"></path>
+                            </svg>
+                            <span class="font-medium">${data.datasources_count}</span> datasources found
+                        </div>`;
+                
+                if (data.datasources && data.datasources.length > 0) {
+                    resultHTML += `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-300 border border-gray-300 rounded">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-300">`;
+                    
+                    data.datasources.forEach(ds => {
+                        resultHTML += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 text-xs">${ds.name || 'Unnamed'}</td>
+                                <td class="px-3 py-2 text-xs">${ds.type || 'Unknown'}</td>
+                            </tr>`;
+                    });
+                    
+                    resultHTML += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                }
+                
+                resultHTML += `</div>`;
+            }
+            
+            resultsContent.innerHTML = resultHTML;
         } else {
-            alert('Connection failed: ' + data.error);
+            // Error formatting
+            resultsContent.innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800">Error connecting to Grafana</p>
+                            <p class="text-sm text-red-700 mt-1">${data.error}</p>
+                        </div>
+                    </div>
+                </div>`;
         }
     } catch (error) {
-        alert('Error testing connection: ' + error.message);
+        // Hide loading spinner
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        document.getElementById('grafanaResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('grafanaResultsContent');
+        resultsContent.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">Error connecting to Grafana</p>
+                        <p class="text-sm text-red-700 mt-1">${error.message}</p>
+                    </div>
+                </div>
+            </div>`;
+    } finally {
+        // Re-enable button
+        const button = document.getElementById('testGrafanaBtn');
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
     }
 }
 
@@ -566,12 +693,22 @@ async function testGrafanaQuery() {
     const apiKey = document.getElementById('api_key').value;
     const query = document.getElementById('test_query').value;
     
-    if (!url || !apiKey || !query) {
-        alert('Please enter Grafana URL, API Key, and Query');
+    if (!query) {
+        alert('Please enter a query to test');
         return;
     }
-
+    
     try {
+        // Show loading spinner
+        document.getElementById('grafanaResults').classList.remove('hidden');
+        document.getElementById('grafanaLoading').classList.remove('hidden');
+        document.getElementById('grafanaResultContainer').classList.add('hidden');
+        
+        // Disable button during request
+        const button = document.getElementById('testGrafanaQueryBtn');
+        button.disabled = true;
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+        
         const response = await fetch('/api/settings/grafana/test-query', {
             method: 'POST',
             headers: {
@@ -585,20 +722,90 @@ async function testGrafanaQuery() {
         });
 
         const data = await response.json();
-        const resultsDiv = document.getElementById('queryResults');
-        const resultsContent = document.getElementById('queryResultsContent');
         
-        resultsDiv.classList.remove('hidden');
+        // Hide loading spinner
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        document.getElementById('grafanaResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('grafanaResultsContent');
+        
         if (data.success) {
-            resultsContent.textContent = JSON.stringify(data.results, null, 2);
+            // Format query results
+            let resultHTML = `
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800">Query executed successfully!</p>
+                        </div>
+                    </div>
+                </div>`;
+                
+                // Add query info
+                resultHTML += `
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Query</h5>
+                        <div class="bg-gray-200 p-2 rounded">
+                            <code class="text-xs font-mono">${query}</code>
+                        </div>
+                    </div>`;
+                
+                // Format results
+                resultHTML += `
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Results</h5>
+                        <div class="bg-gray-200 p-4 rounded overflow-auto max-h-96">
+                            <pre class="text-xs text-gray-800 font-mono">${JSON.stringify(data.results, null, 2)}</pre>
+                        </div>
+                    </div>`;
+                
+                resultsContent.innerHTML = resultHTML;
         } else {
-            resultsContent.textContent = 'Error: ' + data.error;
+            // Error formatting
+            resultsContent.innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800">Error executing query</p>
+                            <p class="text-sm text-red-700 mt-1">${data.error}</p>
+                        </div>
+                    </div>
+                </div>`;
         }
     } catch (error) {
-        const resultsDiv = document.getElementById('queryResults');
-        const resultsContent = document.getElementById('queryResultsContent');
-        resultsDiv.classList.remove('hidden');
-        resultsContent.textContent = 'Error executing query: ' + error.message;
+        // Hide loading spinner
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        document.getElementById('grafanaResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('grafanaResultsContent');
+        resultsContent.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">Error executing query</p>
+                        <p class="text-sm text-red-700 mt-1">${error.message}</p>
+                    </div>
+                </div>
+            </div>`;
+    } finally {
+        // Re-enable button
+        const button = document.getElementById('testGrafanaQueryBtn');
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
     }
 }
 

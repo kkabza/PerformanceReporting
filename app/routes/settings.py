@@ -15,15 +15,22 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 def general():
     """General settings page route."""
     # Get App Insights credentials for display in the template
-    app_insights_id = os.getenv('APP_INSIGHTS_APPLICATION_ID', '')
-    app_insights_key = os.getenv('APP_INSIGHTS_API_KEY', '')
-    
+    app_insights_url = os.getenv('AZURE_APP_INSIGHTS_URL', '')
+    app_insights_api_key = os.getenv('AZURE_APP_INSIGHTS_API_KEY', '')
     # Mask the API key for security
-    app_insights_key_masked = '••••••••' + app_insights_key[-4:] if app_insights_key and len(app_insights_key) > 4 else '••••••••'
+    app_insights_api_key_masked = "•" * len(app_insights_api_key) if app_insights_api_key else ''
+    
+    # Get Grafana credentials from environment
+    grafana_url = os.getenv('GRAFANA_URL', '')
+    grafana_api_key = os.getenv('GRAFANA_API_TOKEN', '')
+    # Mask the API key for security
+    grafana_api_key_masked = "•" * len(grafana_api_key) if grafana_api_key else ''
     
     return render_template('pages/settings/general.html', 
-                           app_insights_id=app_insights_id,
-                           app_insights_key_masked=app_insights_key_masked)
+                           app_insights_url=app_insights_url,
+                           app_insights_api_key_masked=app_insights_api_key_masked,
+                           grafana_url=grafana_url,
+                           grafana_api_key_masked=grafana_api_key_masked)
 
 @settings_bp.route('/preferences')
 def preferences():
@@ -172,73 +179,177 @@ def test_appinsights_connection():
 @settings_bp.route('/api/settings/grafana/test-connection', methods=['POST'])
 @login_required
 def test_grafana_connection():
+    """
+    Test Grafana API connection.
+    """
     data = request.get_json()
     url = data.get('url')
     api_key = data.get('api_key')
-
-    if not url or not api_key:
-        return jsonify({'success': False, 'error': 'Missing URL or API key'}), 400
-
+    
+    # If URL or API key is not provided in the request, use environment variables
+    if not url or not url.strip():
+        url = os.getenv('GRAFANA_URL')
+        current_app.logger.info("Using Grafana URL from environment variables")
+    
+    if not api_key or not api_key.strip():
+        api_key = os.getenv('GRAFANA_API_TOKEN')
+        current_app.logger.info("Using Grafana API key from environment variables")
+    
+    # Check if we have valid credentials
+    if not url or not url.strip():
+        return jsonify({'success': False, 'error': 'Grafana URL is required'})
+    
+    if not api_key or not api_key.strip():
+        return jsonify({'success': False, 'error': 'Grafana API key is required'})
+    
+    # Ensure URL doesn't end with a slash
+    url = url.rstrip('/')
+    
     try:
-        # Test connection by trying to get Grafana health status
-        headers = {'Authorization': f'Bearer {api_key}'}
-        response = requests.get(f'{url.rstrip("/")}/api/health', headers=headers, timeout=5)
+        # Test connection to Grafana
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
         
-        if response.status_code == 200:
-            return jsonify({'success': True})
-        else:
+        # Test basic health endpoint
+        health_response = requests.get(f"{url}/api/health", headers=headers, timeout=10)
+        
+        if health_response.status_code != 200:
             return jsonify({
-                'success': False, 
-                'error': f'Connection failed with status code: {response.status_code}'
-            }), 400
-
-    except requests.exceptions.RequestException as e:
+                'success': False,
+                'error': f'Failed to connect to Grafana: HTTP {health_response.status_code}'
+            })
+        
+        health_data = health_response.json()
+        
+        # Get additional info about the Grafana instance
+        response_data = {
+            'success': True,
+            'version': health_data.get('version', 'Unknown'),
+            'database': health_data.get('database', 'Unknown')
+        }
+        
+        # Try to get datasources info
+        try:
+            datasources_response = requests.get(f"{url}/api/datasources", headers=headers, timeout=10)
+            if datasources_response.status_code == 200:
+                datasources = datasources_response.json()
+                response_data['datasources_count'] = len(datasources)
+                response_data['datasources'] = datasources
+            else:
+                current_app.logger.warning(f"Could not fetch datasources: {datasources_response.status_code}")
+        except Exception as e:
+            current_app.logger.warning(f"Error fetching datasources: {str(e)}")
+        
+        return jsonify(response_data)
+        
+    except requests.exceptions.ConnectionError:
         return jsonify({
             'success': False,
-            'error': f'Connection error: {str(e)}'
-        }), 400
+            'error': 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
+        })
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'success': False,
+            'error': 'Connection to Grafana server timed out. The server may be busy or unreachable.'
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        })
 
 @settings_bp.route('/api/settings/grafana/test-query', methods=['POST'])
 @login_required
 def test_grafana_query():
+    """
+    Test Grafana API query.
+    """
     data = request.get_json()
     url = data.get('url')
     api_key = data.get('api_key')
     query = data.get('query')
-
-    if not url or not api_key or not query:
-        return jsonify({'success': False, 'error': 'Missing URL, API key, or query'}), 400
-
+    
+    # If URL or API key is not provided in the request, use environment variables
+    if not url or not url.strip():
+        url = os.getenv('GRAFANA_URL')
+        current_app.logger.info("Using Grafana URL from environment variables")
+    
+    if not api_key or not api_key.strip():
+        api_key = os.getenv('GRAFANA_API_TOKEN')
+        current_app.logger.info("Using Grafana API key from environment variables")
+    
+    # Check for required parameters
+    if not url or not url.strip():
+        return jsonify({'success': False, 'error': 'Grafana URL is required'})
+    
+    if not api_key or not api_key.strip():
+        return jsonify({'success': False, 'error': 'Grafana API key is required'})
+    
+    if not query or not query.strip():
+        return jsonify({'success': False, 'error': 'Query is required'})
+    
+    # Ensure URL doesn't end with a slash
+    url = url.rstrip('/')
+    
     try:
-        # Execute query using Grafana API
-        headers = {'Authorization': f'Bearer {api_key}'}
-        response = requests.post(
-            f'{url.rstrip("/")}/api/ds/query',
-            headers=headers,
-            json={
-                'queries': [{
+        # Set up headers for API request
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Execute the query through the Grafana API
+        # This is a simplified example - modify as needed for your specific Grafana version and requirements
+        current_time = int(time.time())
+        one_hour_ago = current_time - 3600
+        
+        payload = {
+            'queries': [
+                {
                     'refId': 'A',
-                    'datasource': {'type': 'prometheus'},
+                    'datasource': 'Prometheus',  # Or use a dynamic datasource selection
                     'expr': query,
                     'instant': True
-                }]
-            },
-            timeout=10
+                }
+            ],
+            'from': str(one_hour_ago * 1000),
+            'to': str(current_time * 1000)
+        }
+        
+        response = requests.post(
+            f"{url}/api/ds/query",
+            headers=headers,
+            json=payload,
+            timeout=30
         )
         
-        if response.status_code == 200:
-            return jsonify({
-                'success': True,
-                'results': response.json()
-            })
-        else:
+        if response.status_code != 200:
             return jsonify({
                 'success': False,
-                'error': f'Query failed with status code: {response.status_code}'
-            }), 400
-
-    except requests.exceptions.RequestException as e:
+                'error': f'Query failed: HTTP {response.status_code} - {response.text}'
+            })
+        
+        return jsonify({
+            'success': True,
+            'results': response.json()
+        })
+        
+    except requests.exceptions.ConnectionError:
         return jsonify({
             'success': False,
-            'error': f'Query error: {str(e)}'
-        }), 400 
+            'error': 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
+        })
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'success': False,
+            'error': 'Query timed out. The query may be too complex or the server is busy.'
+        })
+    except Exception as e:
+        current_app.logger.error(f"Error executing Grafana query: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        }) 
