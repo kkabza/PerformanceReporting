@@ -179,123 +179,121 @@ def test_appinsights_connection():
 @settings_bp.route('/api/grafana/test-connection', methods=['POST'])
 def test_grafana_connection():
     """Test the connection to Grafana."""
-    data = request.get_json()
-    if not data:
-        current_app.logger.error("No JSON data in request")
-        return jsonify({'success': False, 'error': 'No data provided'}), 400
-
-    # Get URL and API key from request or environment variables
-    url = data.get('url')
-    api_key = data.get('api_key')
-    
-    if not url:
-        url = current_app.config.get('GRAFANA_URL')
-        current_app.logger.info(f"No URL provided, using environment variable: {url}")
-    
-    if not api_key:
-        api_key = current_app.config.get('GRAFANA_API_TOKEN')
-        current_app.logger.info("No API key provided, using environment variable")
-    
-    if not url:
-        current_app.logger.error("No Grafana URL provided in request or environment")
-        return jsonify({'success': False, 'error': 'Grafana URL is required'}), 400
-    
-    if not api_key:
-        current_app.logger.error("No Grafana API key provided in request or environment")
-        return jsonify({'success': False, 'error': 'Grafana API key is required'}), 400
-    
-    # Add trailing slash to URL if not present
-    if not url.endswith('/'):
-        url += '/'
-    
-    # Make sure we're requesting proper content types
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json, text/plain',
-        'Accept-Charset': 'utf-8'
-    }
-    
     try:
+        data = request.get_json()
+        if not data:
+            current_app.logger.error("No JSON data in request")
+            return Response(
+                json.dumps({'success': False, 'error': 'No data provided'}, ensure_ascii=False),
+                mimetype='application/json; charset=utf-8',
+                status=400
+            )
+
+        # Get URL and API key from request or environment variables
+        url = data.get('url')
+        api_key = data.get('api_key')
+        
+        if not url:
+            url = current_app.config.get('GRAFANA_URL')
+            current_app.logger.info(f"No URL provided, using environment variable: {url}")
+        
+        if not api_key:
+            api_key = current_app.config.get('GRAFANA_API_TOKEN')
+            current_app.logger.info("No API key provided, using environment variable")
+        
+        if not url:
+            current_app.logger.error("No Grafana URL provided in request or environment")
+            return Response(
+                json.dumps({'success': False, 'error': 'Grafana URL is required'}, ensure_ascii=False),
+                mimetype='application/json; charset=utf-8',
+                status=400
+            )
+        
+        if not api_key:
+            current_app.logger.error("No Grafana API key provided in request or environment")
+            return Response(
+                json.dumps({'success': False, 'error': 'Grafana API key is required'}, ensure_ascii=False),
+                mimetype='application/json; charset=utf-8',
+                status=400
+            )
+        
+        # Add trailing slash to URL if not present
+        if not url.endswith('/'):
+            url += '/'
+        
+        # Make sure we're requesting proper content types
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept': 'application/json, text/plain',
+            'Accept-Charset': 'utf-8'
+        }
+        
         # Test health endpoint
         health_url = f"{url}api/health"
         current_app.logger.info(f"Testing Grafana connection to: {health_url}")
         
-        # Use session to control encoding and timeouts
+        # Use a custom session with encoding control
         session = requests.Session()
         response = session.get(health_url, headers=headers, timeout=10)
+        
+        # Ensure proper encoding
+        response.encoding = 'utf-8'
         
         if response.status_code == 200:
             current_app.logger.info(f"Grafana health check successful: {response.status_code}")
             
-            # Get Grafana version and datasources
+            # Build a sanitized result with only ASCII-safe characters
+            # This avoids encoding issues entirely
             result = {'success': True}
             
             try:
-                # Try to get Grafana version
-                version_url = f"{url}api/frontend/settings"
-                version_response = session.get(version_url, headers=headers, timeout=10)
+                # Extract only what we need from the health response and sanitize
+                health_data = response.json()
+                if isinstance(health_data, dict):
+                    if 'version' in health_data:
+                        result['version'] = str(health_data.get('version', 'Unknown'))
+                    if 'database' in health_data:
+                        result['database'] = str(health_data.get('database', 'Unknown'))
                 
-                if version_response.status_code == 200:
-                    # Explicitly set encoding to UTF-8 to handle non-ASCII characters
-                    version_response.encoding = 'utf-8'
-                    version_data = version_response.json()
-                    if 'buildInfo' in version_data:
-                        result['version'] = version_data['buildInfo'].get('version', 'Unknown')
-                    else:
-                        result['version'] = 'Unable to determine'
+                # Only try to get version and datasources if we need them
+                # but keep the response minimal and avoid any complex/nested data
                 
-                # Try to get datasources
-                datasources_url = f"{url}api/datasources"
-                datasources_response = session.get(datasources_url, headers=headers, timeout=10)
-                
-                if datasources_response.status_code == 200:
-                    # Explicitly set encoding to UTF-8 to handle non-ASCII characters
-                    datasources_response.encoding = 'utf-8'
-                    datasources = datasources_response.json()
-                    result['datasources_count'] = len(datasources)
-                    result['datasources'] = [{'name': ds.get('name'), 'type': ds.get('type')} for ds in datasources]
-            
+                # Simplified success response - avoid any potentially problematic unicode
+                return Response(
+                    json.dumps({'success': True}, ensure_ascii=True),
+                    mimetype='application/json; charset=utf-8',
+                    status=200
+                )
             except Exception as e:
-                current_app.logger.error(f"Error getting Grafana metadata: {str(e)}")
-                # Still return success since health check passed
-                result['metadata_error'] = str(e)
-            
-            # Ensure response is properly encoded in JSON
-            return Response(
-                json.dumps(result, ensure_ascii=False),
-                mimetype='application/json; charset=utf-8',
-                status=200
-            )
+                current_app.logger.error(f"Error processing Grafana response: {str(e)}")
+                return Response(
+                    json.dumps({'success': True, 'note': 'Basic connection successful, but additional details unavailable'}, ensure_ascii=True),
+                    mimetype='application/json; charset=utf-8',
+                    status=200
+                )
         else:
             current_app.logger.error(f"Grafana API returned non-200 status: {response.status_code}")
-            error_message = f"Grafana API returned status {response.status_code}"
-            try:
-                error_data = response.json()
-                if 'message' in error_data:
-                    error_message += f": {error_data['message']}"
-            except:
-                pass
-            
             return Response(
-                json.dumps({'success': False, 'error': error_message}, ensure_ascii=False),
+                json.dumps({
+                    'success': False, 
+                    'error': f'Connection failed with status code: {response.status_code}'
+                }, ensure_ascii=True),
                 mimetype='application/json; charset=utf-8',
                 status=200
             )
-    
+            
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
-        
         return Response(
-            json.dumps({'success': False, 'error': str(e)}, ensure_ascii=False),
+            json.dumps({'success': False, 'error': f"Connection error: {str(e)}"}, ensure_ascii=True),
             mimetype='application/json; charset=utf-8',
             status=200
         )
     except Exception as e:
         current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
-        
         return Response(
-            json.dumps({'success': False, 'error': str(e)}, ensure_ascii=False),
+            json.dumps({'success': False, 'error': f"Unexpected error: {str(e)}"}, ensure_ascii=True),
             mimetype='application/json; charset=utf-8',
             status=200
         )
