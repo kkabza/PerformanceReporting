@@ -552,7 +552,7 @@ async function testGrafanaConnection() {
         button.disabled = true;
         button.classList.add('opacity-75', 'cursor-not-allowed');
         
-        const response = await fetch('/api/settings/grafana/test-connection', {
+        const response = await fetch('/settings/api/grafana/test-connection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -709,7 +709,7 @@ async function testGrafanaQuery() {
         button.disabled = true;
         button.classList.add('opacity-75', 'cursor-not-allowed');
         
-        const response = await fetch('/api/settings/grafana/test-query', {
+        const response = await fetch('/settings/api/grafana/test-query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -176,7 +176,7 @@ def test_appinsights_connection():
             'debug_info': debug_info
         }), 400
 
-@settings_bp.route('/api/settings/grafana/test-connection', methods=['POST'])
+@settings_bp.route('/api/grafana/test-connection', methods=['POST'])
 @login_required
 def test_grafana_connection():
     """
@@ -261,7 +261,7 @@ def test_grafana_connection():
             'error': f'An error occurred: {str(e)}'
         })
 
-@settings_bp.route('/api/settings/grafana/test-query', methods=['POST'])
+@settings_bp.route('/api/grafana/test-query', methods=['POST'])
 @login_required
 def test_grafana_query():
     """
