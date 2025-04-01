@@ -1,15 +1,24 @@
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, render_template, current_app, redirect, url_for
 import os
 import sentry_sdk
 from app.utils.sentry_utils import capture_message, capture_exception
+from app.routes.auth import login_required
 
 # Create blueprint
 home_bp = Blueprint('home', __name__)
 
 @home_bp.route('/')
 def index():
-    """Home page route."""
-    return render_template('pages/home.html', title="Performance Reporting")
+    """Redirect to login if not authenticated, otherwise show dashboard."""
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    return redirect(url_for('home.dashboard'))
+
+@home_bp.route('/dashboard')
+@login_required
+def dashboard():
+    """Dashboard page route."""
+    return render_template('pages/dashboard.html', title="Dashboard")
 
 @home_bp.route('/debug-sentry')
 def test_sentry():
