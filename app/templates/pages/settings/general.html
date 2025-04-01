@@ -709,7 +709,14 @@ document.addEventListener('DOMContentLoaded', function() {
 async function testGrafanaConnection() {
     console.log("Test Grafana connection called");
     const url = document.getElementById('grafana_url').value;
-    const apiKey = document.getElementById('api_key').value;
+    let apiKey = document.getElementById('api_key').value;
+    
+    // Ensure we have the API key - if the API key field has a masked value, get the real key from the data attribute
+    if (!apiKey || apiKey.trim() === '' || apiKey.includes('•')) {
+        // Use the server-provided API key stored in a data attribute
+        apiKey = "{{ grafana_api_key }}";
+        console.log("Using API key from environment variables");
+    }
     
     console.log("URL:", url);
     console.log("API Key length:", apiKey.length);
@@ -825,8 +832,15 @@ async function testGrafanaConnection() {
 
 async function testGrafanaQuery() {
     const url = document.getElementById('grafana_url').value;
-    const apiKey = document.getElementById('api_key').value;
+    let apiKey = document.getElementById('api_key').value;
     const query = document.getElementById('test_query').value;
+    
+    // Ensure we have the API key - if the API key field has a masked value, get the real key from the data attribute
+    if (!apiKey || apiKey.trim() === '' || apiKey.includes('•')) {
+        // Use the server-provided API key stored in a data attribute
+        apiKey = "{{ grafana_api_key }}";
+        console.log("Using API key from environment variables");
+    }
     
     if (!query) {
         alert('Please enter a query');
