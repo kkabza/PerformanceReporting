@@ -1,0 +1,13 @@
+# API Route Consistency Rule
+
+rules:
+  api_route_consistency:
+    description: "API routes must follow consistent naming patterns across backend and frontend code"
+    level: error
+    paths:
+      include:
+        - "app/routes/**/*.py"
+        - "app/templates/**/*.html"
+        - "app/static/js/**/*.js"
+    patterns:
+      - pattern: "@.*_bp\.route\([\'\"][/]api[/]\w+[/].*[\'\"]"

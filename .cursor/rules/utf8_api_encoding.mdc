@@ -1,0 +1,14 @@
+# UTF-8 API Encoding Rule
+
+rules:
+  utf8_api_encoding:
+    description: "All API responses must properly handle UTF-8 encoding to prevent encoding errors"
+    level: error
+    paths:
+      include:
+        - "app/routes/**/*.py"
+        - "app/templates/**/*.html"
+        - "app/static/js/**/*.js"
+        - "app/utils/**/*.py"
+    patterns:
+      - pattern: "json\.dumps\(.*ensure_ascii\s*=\s*False"

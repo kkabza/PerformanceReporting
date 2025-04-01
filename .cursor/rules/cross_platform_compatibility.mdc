@@ -1,0 +1,12 @@
+# Cross-Platform Compatibility Rule
+
+rules:
+  cross_platform_code:
+    description: "Code must work consistently across different operating systems (Windows, macOS, Linux)"
+    level: error
+    paths:
+      include:
+        - "**/*.py"
+        - "run.py"
+        - "app.py"
+        - "app/utils/report_enforcer.py"
