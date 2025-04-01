@@ -538,3 +538,90 @@ def test_openai_connection():
             mimetype='application/json; charset=utf-8',
             status=500
         ) 
+
+@settings_bp.route('/api/appinsights/run-query', methods=['POST'])
+@login_required
+def run_appinsights_query():
+    """Run a Kusto query against Application Insights."""
+    # Get App Insights credentials from environment
+    app_id = os.getenv('APP_INSIGHTS_APPLICATION_ID')
+    api_key = os.getenv('APP_INSIGHTS_API_KEY')
+    
+    # Check if credentials are available
+    if not app_id or not api_key:
+        error_msg = 'Missing Application Insights credentials. Check your environment variables.'
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False, 
+            'error': error_msg
+        }), 400
+    
+    # Get query from request
+    data = request.get_json()
+    if not data or 'query' not in data:
+        return jsonify({
+            'success': False,
+            'error': 'Missing query in request'
+        }), 400
+    
+    query = data.get('query')
+    time_range = data.get('timeRange', '1h')  # Default to 1 hour
+    
+    current_app.logger.info(f"Running App Insights query: {query}")
+    current_app.logger.info(f"Time range: {time_range}")
+    
+    try:
+        # Build the URL for the query API
+        url = f"https://api.applicationinsights.io/v1/apps/{app_id}/query"
+        
+        # Set up headers with the API key
+        headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        # Set query parameters
+        params = {
+            "query": query
+        }
+        
+        # Send the request
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        
+        # Check response status
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Format the results for display
+            rows_count = 0
+            if 'tables' in data and len(data['tables']) > 0 and 'rows' in data['tables'][0]:
+                rows_count = len(data['tables'][0]['rows'])
+            
+            return jsonify({
+                'success': True,
+                'tables': data.get('tables', []),
+                'rows_count': rows_count
+            })
+        else:
+            # Try to interpret the response content
+            try:
+                error_data = response.json()
+                error_message = error_data.get('error', {}).get('message', str(error_data))
+            except:
+                error_message = response.text[:500] if response.text else f"Status code: {response.status_code}"
+            
+            error_msg = f'Error {response.status_code}: {error_message}'
+            current_app.logger.error(error_msg)
+            
+            return jsonify({
+                'success': False, 
+                'error': error_msg
+            }), 400
+    
+    except requests.exceptions.RequestException as e:
+        error_msg = f'Connection error: {str(e)}'
+        current_app.logger.error(error_msg)
+        return jsonify({
+            'success': False,
+            'error': error_msg
+        }), 400 

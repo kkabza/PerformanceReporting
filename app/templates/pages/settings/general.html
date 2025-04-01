@@ -100,66 +100,160 @@
             <div id="app-insights" class="tab-content hidden">
                 <div class="p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-6">App Insights Configuration</h3>
-                    <form class="space-y-6" id="appInsightsForm">
-                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-info-circle text-blue-400"></i>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-blue-700">
-                                        Application Insights is configured using environment variables. The current configuration is shown below.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Application ID</label>
-                                <div class="mt-1 flex rounded-md shadow-sm">
-                                    <input type="text" 
-                                        id="app_id_display"
-                                        class="flex-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-gray-300 focus:ring-0 cursor-not-allowed"
-                                        value="{{ app_insights_id|default('Not configured') }}" 
-                                        disabled>
-                                </div>
-                                <p class="mt-1 text-sm text-gray-500">Set in .env file as APP_INSIGHTS_APPLICATION_ID</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                                <div class="mt-1 flex rounded-md shadow-sm">
-                                    <input type="password" 
-                                        id="api_key_display"
-                                        class="flex-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-gray-300 focus:ring-0 cursor-not-allowed"
-                                        value="{{ app_insights_key_masked|default('••••••••') }}" 
-                                        disabled>
-                                </div>
-                                <p class="mt-1 text-sm text-gray-500">Set in .env file as APP_INSIGHTS_API_KEY</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex justify-end">
-                            <button type="button"
-                                    id="testAppInsightsBtn"
-                                    onclick="testAppInsightsConnection()"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    
+                    <!-- App Insights Inner Tabs -->
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav class="-mb-px flex space-x-4" aria-label="App Insights Tabs">
+                            <button class="appinsights-tab-button whitespace-nowrap py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600" 
+                                    onclick="switchAppInsightsTab('appinsights-connection')" 
+                                    data-appinsights-tab="appinsights-connection">
                                 <i class="fas fa-plug mr-2"></i>
-                                Test Connection
+                                Connection
                             </button>
-                        </div>
-                        <!-- App Insights Connection Results -->
-                        <div id="appInsightsResults" class="mt-4 hidden">
-                            <h4 class="text-md font-medium text-gray-800 mb-2">Connection Results</h4>
-                            <!-- Loading Spinner -->
-                            <div id="appInsightsLoading" class="flex justify-center my-8 hidden">
-                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                            <button class="appinsights-tab-button whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300" 
+                                    onclick="switchAppInsightsTab('appinsights-query')" 
+                                    data-appinsights-tab="appinsights-query">
+                                <i class="fas fa-database mr-2"></i>
+                                Query Editor
+                            </button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Connection Tab Content -->
+                    <div id="appinsights-connection" class="appinsights-tab-content">
+                        <form class="space-y-6" id="appInsightsForm">
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-blue-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            Application Insights is configured using environment variables. The current configuration is shown below.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="appInsightsResultContainer" class="bg-gray-100 rounded-md p-4">
-                                <div id="appInsightsResultsContent" class="text-sm text-gray-700"></div>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Application ID</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <input type="text" 
+                                            id="app_id_display"
+                                            class="flex-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-gray-300 focus:ring-0 cursor-not-allowed"
+                                            value="{{ app_insights_id|default('Not configured') }}" 
+                                            disabled>
+                                    </div>
+                                    <p class="mt-1 text-sm text-gray-500">Set in .env file as APP_INSIGHTS_APPLICATION_ID</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <input type="password" 
+                                            id="api_key_display"
+                                            class="flex-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-gray-300 focus:ring-0 cursor-not-allowed"
+                                            value="{{ app_insights_key_masked|default('••••••••') }}" 
+                                            disabled>
+                                    </div>
+                                    <p class="mt-1 text-sm text-gray-500">Set in .env file as APP_INSIGHTS_API_KEY</p>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                            
+                            <div class="flex justify-end">
+                                <button type="button"
+                                        id="testAppInsightsBtn"
+                                        onclick="testAppInsightsConnection()"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-plug mr-2"></i>
+                                    Test Connection
+                                </button>
+                            </div>
+                            <!-- App Insights Connection Results -->
+                            <div id="appInsightsResults" class="mt-4 hidden">
+                                <h4 class="text-md font-medium text-gray-800 mb-2">Connection Results</h4>
+                                <!-- Loading Spinner -->
+                                <div id="appInsightsLoading" class="flex justify-center my-8 hidden">
+                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                                </div>
+                                <div id="appInsightsResultContainer" class="bg-gray-100 rounded-md p-4">
+                                    <div id="appInsightsResultsContent" class="text-sm text-gray-700"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Query Tab Content -->
+                    <div id="appinsights-query" class="appinsights-tab-content hidden">
+                        <form class="space-y-6" id="appInsightsQueryForm">
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-blue-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            Run Kusto queries against your Application Insights instance.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kusto Query</label>
+                                <textarea
+                                    id="kusto_query"
+                                    name="kusto_query"
+                                    rows="6"
+                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200 font-mono text-sm"
+                                    placeholder="// Enter your Kusto query here
+traces 
+| where timestamp > ago(1h)
+| order by timestamp desc 
+| take 10"
+                                ></textarea>
+                                <p class="mt-1 text-sm text-gray-500">Enter a Kusto query to run against Application Insights</p>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
+                                    <select
+                                        id="time_range"
+                                        name="time_range"
+                                        class="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                        <option value="30m">Last 30 minutes</option>
+                                        <option value="1h" selected>Last 1 hour</option>
+                                        <option value="12h">Last 12 hours</option>
+                                        <option value="24h">Last 24 hours</option>
+                                        <option value="7d">Last 7 days</option>
+                                        <option value="30d">Last 30 days</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="button"
+                                            id="runKustoQueryBtn"
+                                            onclick="runKustoQuery()"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Run Query
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Kusto Query Results -->
+                            <div id="kustoResults" class="mt-4 hidden">
+                                <h4 class="text-md font-medium text-gray-800 mb-2">Query Results</h4>
+                                <!-- Loading Spinner -->
+                                <div id="kustoLoading" class="flex justify-center my-8 hidden">
+                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                                </div>
+                                <div id="kustoResultContainer" class="bg-gray-100 rounded-md p-4">
+                                    <div id="kustoResultsContent" class="text-sm text-gray-700"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -345,6 +439,27 @@ function switchTab(tabId) {
     
     // Add active class to selected button
     const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
+    activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    activeButton.classList.add('border-blue-500', 'text-blue-600');
+}
+
+function switchAppInsightsTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.appinsights-tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.appinsights-tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabId).classList.remove('hidden');
+    
+    // Add active class to selected button
+    const activeButton = document.querySelector(`[data-appinsights-tab="${tabId}"]`);
     activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
     activeButton.classList.add('border-blue-500', 'text-blue-600');
 }
@@ -882,5 +997,182 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+async function runKustoQuery() {
+    const query = document.getElementById('kusto_query').value;
+    const timeRange = document.getElementById('time_range').value;
+    
+    if (!query) {
+        alert('Please enter a Kusto query');
+        return;
+    }
+
+    try {
+        // Show loading spinner
+        document.getElementById('kustoResults').classList.remove('hidden');
+        document.getElementById('kustoLoading').classList.remove('hidden');
+        document.getElementById('kustoResultContainer').classList.add('hidden');
+        
+        // Disable button during request
+        const button = document.getElementById('runKustoQueryBtn');
+        button.disabled = true;
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+        
+        const response = await fetch('/settings/api/appinsights/run-query', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: query,
+                timeRange: timeRange
+            })
+        });
+
+        const data = await response.json();
+        
+        // Hide loading spinner
+        document.getElementById('kustoLoading').classList.add('hidden');
+        document.getElementById('kustoResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('kustoResultsContent');
+        
+        if (data.success) {
+            // Format Azure Portal style result
+            let resultHTML = `
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800">Query executed successfully!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="text-sm font-medium text-gray-700 mb-2">Query</h5>
+                    <div class="bg-gray-200 p-2 rounded">
+                        <code class="text-xs font-mono">${query}</code>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="text-sm font-medium text-gray-700 mb-2">Results Summary</h5>
+                    <div class="flex items-center text-sm">
+                        <svg class="mr-2 h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <span class="font-medium">${data.rows_count}</span> records found
+                    </div>
+                </div>`;
+                
+            if (data.tables && data.tables.length > 0 && data.tables[0].rows && data.tables[0].rows.length > 0) {
+                resultHTML += `
+                    <div>
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Results</h5>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-300 border border-gray-300 rounded">
+                                <thead class="bg-gray-200">
+                                    <tr>`;
+                
+                // Create table headers from columns
+                data.tables[0].columns.forEach(column => {
+                    resultHTML += `<th class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">${column.name}</th>`;
+                });
+                
+                resultHTML += `
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-300">`;
+                
+                // Create table rows
+                data.tables[0].rows.forEach(row => {
+                    resultHTML += `<tr class="hover:bg-gray-50">`;
+                    row.forEach((cell, index) => {
+                        const columnName = data.tables[0].columns[index].name.toLowerCase();
+                        
+                        // Format timestamp if the value looks like a timestamp
+                        let cellValue = cell;
+                        if (columnName.includes('time') && typeof cellValue === 'string' && cellValue.includes('T')) {
+                            try {
+                                const date = new Date(cellValue);
+                                cellValue = date.toLocaleString();
+                            } catch (e) {
+                                // Keep original if parsing fails
+                            }
+                        }
+                        
+                        // Truncate long cell values with tooltip
+                        if (typeof cellValue === 'string' && cellValue.length > 80) {
+                            resultHTML += `<td class="px-3 py-2 text-xs" title="${cellValue}">${cellValue.substring(0, 80)}...</td>`;
+                        } else {
+                            resultHTML += `<td class="px-3 py-2 text-xs">${cellValue !== null ? cellValue : ''}</td>`;
+                        }
+                    });
+                    resultHTML += `</tr>`;
+                });
+                
+                resultHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Showing ${data.tables[0].rows.length} of ${data.rows_count} records</p>
+                    </div>`;
+            } else {
+                resultHTML += `
+                    <div class="bg-gray-200 p-4 rounded">
+                        <p class="text-sm text-gray-700">No data returned from this query.</p>
+                    </div>`;
+            }
+            
+            resultsContent.innerHTML = resultHTML;
+        } else {
+            // Error formatting
+            resultsContent.innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800">Error executing query</p>
+                            <p class="text-sm text-red-700 mt-1">${data.error}</p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+    } catch (error) {
+        // Hide loading spinner
+        document.getElementById('kustoLoading').classList.add('hidden');
+        document.getElementById('kustoResultContainer').classList.remove('hidden');
+        
+        const resultsContent = document.getElementById('kustoResultsContent');
+        resultsContent.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">Error executing query</p>
+                        <p class="text-sm text-red-700 mt-1">${error.message}</p>
+                    </div>
+                </div>
+            </div>`;
+    } finally {
+        // Re-enable button
+        const button = document.getElementById('runKustoQueryBtn');
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+}
 </script>
 {% endblock %} 
