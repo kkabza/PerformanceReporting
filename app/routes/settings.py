@@ -470,8 +470,28 @@ def test_openai_connection():
                 status=400
             )
         
+        # Print environment debug info before getting API key
+        current_app.logger.info("Environment variables:")
+        env_debug = {}
+        for key, value in os.environ.items():
+            if 'OPENAI' in key:
+                if 'KEY' in key or 'TOKEN' in key:
+                    masked_value = value[:5] + "..." + value[-5:] if value and len(value) > 10 else "(empty)"
+                    env_debug[key] = masked_value
+                else:
+                    env_debug[key] = value
+        current_app.logger.info(f"OpenAI environment variables: {env_debug}")
+            
+        # Print debug info about where the key might be stored
+        current_app.logger.info("Looking for API key in .env files")
+        for env_file in ['.env', '.env.development', '.env.dev', '.env.local']:
+            if os.path.exists(env_file):
+                current_app.logger.info(f"Found {env_file} file")
+            else:
+                current_app.logger.info(f"{env_file} file not found")
+        
         # Get endpoint and API key from request or environment variables
-        endpoint = data.get('endpoint') or os.getenv('OPENAI_API_ENDPOINT', '')
+        endpoint = data.get('endpoint') or os.getenv('OPENAI_API_ENDPOINT', 'https://api.openai.com/v1')
         deployment = data.get('deployment') or os.getenv('OPENAI_DEPLOYMENT', 'gpt-3.5-turbo')
         
         # For the API key, first check if provided in the request
@@ -480,7 +500,7 @@ def test_openai_connection():
         # If not provided in request and empty, get from environment as fallback
         if not api_key:
             api_key = os.getenv('OPENAI_API_KEY', '')
-            current_app.logger.info("API key not provided in request, using environment variable as fallback")
+            current_app.logger.info(f"API key from env length: {len(api_key) if api_key else 0}")
         
         # Log with proper masking for security
         current_app.logger.info(f"Endpoint: {endpoint}")
@@ -496,7 +516,7 @@ def test_openai_connection():
         
         if not api_key:
             return Response(
-                json.dumps({'success': False, 'error': 'OpenAI API key is required. Please enter your API key.'}, ensure_ascii=False),
+                json.dumps({'success': False, 'error': 'OpenAI API key is required. Please enter your API key or add it to the environment variables.'}, ensure_ascii=False),
                 mimetype='application/json; charset=utf-8',
                 status=400
             )
