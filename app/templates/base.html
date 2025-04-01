@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Performance Reporting{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <!-- Tailwind CSS -->
+    {% if config.FLASK_ENV == 'development' %}
+    <!-- TODO: For production, install Tailwind CSS via npm and build with postcss -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% else %}
+    <link href="{{ url_for('static', filename='css/tailwind.min.css') }}" rel="stylesheet">
+    {% endif %}
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Build version -->
+    <meta name="build-version" content="{{ build_version }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html> 
