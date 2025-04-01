@@ -386,17 +386,23 @@ def test_grafana_query():
         current_app.logger.error("No query provided")
         return jsonify({'success': False, 'error': 'Query is required'})
     
-    # Ensure URL doesn't have protocol if included
+    # Process the URL to ensure proper format
+    # First, strip any existing protocol
     if url.startswith('http://'):
         url = url[7:]
+        protocol = 'http'
     elif url.startswith('https://'):
         url = url[8:]
+        protocol = 'https'
+    else:
+        # Default to HTTP for local development (more likely to work without certificates)
+        protocol = 'http'
     
     # Ensure URL doesn't end with a slash
     url = url.rstrip('/')
     
-    # Build the full URL with protocol (prefer HTTPS)
-    full_url = f"https://{url}"
+    # Build the full URL with protocol
+    full_url = f"{protocol}://{url}"
     current_app.logger.info(f"Using Grafana URL: {full_url}")
     
     try:
@@ -433,6 +439,10 @@ def test_grafana_query():
         
         current_app.logger.info(f"Request payload: {json.dumps(payload)}")
         
+        # Disable SSL verification in development mode for self-signed certificates
+        verify_ssl = not os.getenv('FLASK_ENV', '').lower() in ['development', 'dev']
+        current_app.logger.info(f"SSL verification: {'enabled' if verify_ssl else 'disabled'}")
+        
         # First try the ds/query endpoint (Grafana 8+)
         ds_query_url = f"{full_url}/api/ds/query"
         current_app.logger.info(f"Trying endpoint: {ds_query_url}")
@@ -441,7 +451,8 @@ def test_grafana_query():
             ds_query_url,
             headers=headers,
             json=payload,
-            timeout=30
+            timeout=30,
+            verify=verify_ssl
         )
         
         # If that fails, try the legacy endpoint
@@ -458,7 +469,22 @@ def test_grafana_query():
                 legacy_query_url,
                 headers=headers,
                 json=legacy_payload,
-                timeout=30
+                timeout=30,
+                verify=verify_ssl
+            )
+        
+        # If both fail, try one more time with the opposite protocol (http vs https)
+        if response.status_code == 0 or response.status_code >= 500:
+            alt_protocol = 'https' if protocol == 'http' else 'http'
+            alt_url = f"{alt_protocol}://{url}"
+            current_app.logger.info(f"Connection failed, trying with alternate protocol: {alt_url}")
+            
+            response = requests.post(
+                f"{alt_url}/api/ds/query",
+                headers=headers,
+                json=payload,
+                timeout=30,
+                verify=verify_ssl
             )
         
         # Log detailed response info
@@ -510,6 +536,12 @@ def test_grafana_query():
                 'error': f'Failed to parse response: {str(e)}'
             })
         
+    except requests.exceptions.SSLError as e:
+        current_app.logger.error(f"SSL Error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'SSL certificate validation failed. Your Grafana server may be using a self-signed certificate.'
+        })
     except requests.exceptions.ConnectionError as e:
         current_app.logger.error(f"Grafana connection error: {str(e)}")
         return jsonify({
