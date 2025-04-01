@@ -1,1 +1,9 @@
- 
+---
+description: Provides guidelines for GitHub usage, commits, and check-ins
+globs: ["**/*.py", "**/*.js", "**/*.html", "**/*.css", "**/*.md"]
+alwaysApply: true
+---
+# GitHub Workflow Guidelines
+
+id: github-workflow
+title: GitHub Commit and PR Standards
