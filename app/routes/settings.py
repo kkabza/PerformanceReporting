@@ -354,10 +354,15 @@ def test_grafana_query():
     """
     Test Grafana API query.
     """
+    current_app.logger.info("Starting Grafana test query")
     data = request.get_json()
     url = data.get('url')
     api_key = data.get('api_key')
     query = data.get('query')
+    
+    current_app.logger.info(f"Received query: {query}")
+    current_app.logger.info(f"URL: {url}")
+    current_app.logger.info(f"API key length: {len(api_key) if api_key else 0}")
     
     # If URL or API key is not provided in the request, use environment variables
     if not url or not url.strip():
@@ -370,16 +375,29 @@ def test_grafana_query():
     
     # Check for required parameters
     if not url or not url.strip():
+        current_app.logger.error("No Grafana URL provided")
         return jsonify({'success': False, 'error': 'Grafana URL is required'})
     
     if not api_key or not api_key.strip():
+        current_app.logger.error("No Grafana API key provided")
         return jsonify({'success': False, 'error': 'Grafana API key is required'})
     
     if not query or not query.strip():
+        current_app.logger.error("No query provided")
         return jsonify({'success': False, 'error': 'Query is required'})
+    
+    # Ensure URL doesn't have protocol if included
+    if url.startswith('http://'):
+        url = url[7:]
+    elif url.startswith('https://'):
+        url = url[8:]
     
     # Ensure URL doesn't end with a slash
     url = url.rstrip('/')
+    
+    # Build the full URL with protocol
+    full_url = f"http://{url}"
+    current_app.logger.info(f"Using Grafana URL: {full_url}")
     
     try:
         # Set up headers for API request
@@ -398,7 +416,10 @@ def test_grafana_query():
             'queries': [
                 {
                     'refId': 'A',
-                    'datasource': 'Prometheus',  # Or use a dynamic datasource selection
+                    'datasource': {
+                        'type': 'prometheus',
+                        'uid': 'P8E80F9AEF21F6940'
+                    },
                     'expr': query,
                     'instant': True
                 }
@@ -407,18 +428,24 @@ def test_grafana_query():
             'to': str(current_time * 1000)
         }
         
+        current_app.logger.info(f"Request payload: {json.dumps(payload)}")
+        
         response = requests.post(
-            f"{url}/api/ds/query",
+            f"{full_url}/api/ds/query",
             headers=headers,
             json=payload,
             timeout=30
         )
+        
+        current_app.logger.info(f"Response status: {response.status_code}")
+        current_app.logger.info(f"Response headers: {dict(response.headers)}")
         
         response.encoding = 'utf-8'
         
         if response.status_code != 200:
             # Handle non-success response
             error_text = response.text[:500] if response.text else f"HTTP {response.status_code}"
+            current_app.logger.error(f"Query failed: {error_text}")
             return jsonify({
                 'success': False,
                 'error': f'Query failed: {error_text}'
@@ -427,6 +454,7 @@ def test_grafana_query():
         # Process response to handle any encoding issues
         try:
             result_data = response.json()
+            current_app.logger.info(f"Response data: {json.dumps(result_data)[:500]}...")
             
             # Safely convert to JSON with UTF-8 encoding
             return current_app.response_class(
@@ -438,6 +466,7 @@ def test_grafana_query():
             )
         except json.JSONDecodeError as e:
             current_app.logger.error(f"Failed to parse Grafana response: {str(e)}")
+            current_app.logger.error(f"Response content: {response.text[:500]}")
             return jsonify({
                 'success': False,
                 'error': f'Failed to parse response: {str(e)}'
@@ -450,6 +479,7 @@ def test_grafana_query():
             'error': 'Could not connect to Grafana server. Please check the URL and ensure the server is running.'
         })
     except requests.exceptions.Timeout:
+        current_app.logger.error("Request timed out")
         return jsonify({
             'success': False,
             'error': 'Query timed out. The query may be too complex or the server is busy.'
@@ -459,8 +489,8 @@ def test_grafana_query():
         current_app.logger.error(f"Error executing Grafana query: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'An error occurred with the Grafana query. Please check the logs for details.'
-        }) 
+            'error': f'An error occurred with the Grafana query: {str(e)}'
+        })
 
 @settings_bp.route('/api/settings/openai/test-connection', methods=['POST'])
 @login_required

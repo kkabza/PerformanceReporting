@@ -332,8 +332,11 @@ traces
                                         id="test_query"
                                         rows="3"
                                         class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                        placeholder="Enter your Grafana query here"></textarea>
-                                    <p class="mt-1 text-sm text-gray-500">Example: rate(http_requests_total[5m])</p>
+                                        placeholder="Examples:
+up                                      # Shows up/down status of targets
+label_values(__name__)                  # Lists all available metrics
+rate(node_cpu_seconds_total{mode='idle'}[5m])   # CPU utilization">up</textarea>
+                                    <p class="mt-1 text-sm text-gray-500">Enter a simple Prometheus query (e.g., 'up' to see monitoring targets)</p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
                                     <button type="button"
