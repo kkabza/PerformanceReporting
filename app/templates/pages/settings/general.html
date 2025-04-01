@@ -299,7 +299,7 @@ traces
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                                    <div class="relative">
+                                    <div class="relative" id="api_key_container">
                                         <input type="password" 
                                                name="api_key"
                                                id="api_key"
@@ -313,9 +313,14 @@ traces
                                     </div>
                                     <div class="flex justify-between mt-1">
                                         <p class="text-sm text-gray-500">API key with Viewer permissions</p>
-                                        <button type="button" onclick="copyApiKey()" class="text-sm text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-copy mr-1"></i> Copy
-                                        </button>
+                                        <div>
+                                            <button type="button" onclick="copyApiKey()" class="text-sm text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-copy mr-1"></i> Copy
+                                            </button>
+                                            <button type="button" onclick="loadApiKeyFromEnv()" class="text-sm text-green-600 hover:text-green-800">
+                                                <i class="fas fa-sync-alt mr-1"></i> Load from .env
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -704,9 +709,15 @@ async function testAppInsightsConnection() {
     }
 }
 
-// Initialize active tab
+// Initialize active tab and load API key on page load
 document.addEventListener('DOMContentLoaded', function() {
     switchTab('devops');
+    
+    // Auto-load the API key from environment variables if it's not already set
+    const apiKey = document.getElementById('api_key').value;
+    if (!apiKey || apiKey.trim() === '') {
+        loadApiKeyFromEnv();
+    }
 });
 
 async function testGrafanaConnection() {
@@ -1259,6 +1270,25 @@ function copyApiKey() {
         document.body.removeChild(tempInput);
         
         alert('API key copied to clipboard');
+    }
+}
+
+function loadApiKeyFromEnv() {
+    // Get API key from environment variables through template variable
+    const apiKey = "{{ grafana_api_key|default('') }}";
+    
+    if (apiKey) {
+        document.getElementById('api_key').value = apiKey;
+        document.getElementById('api_key_container').classList.add('border', 'border-green-500');
+        
+        // Flash effect to indicate successful loading
+        setTimeout(() => {
+            document.getElementById('api_key_container').classList.remove('border', 'border-green-500');
+        }, 2000);
+        
+        console.log("API key loaded from environment variables");
+    } else {
+        alert('No API key found in environment variables. Please check your .env file.');
     }
 }
 </script>
