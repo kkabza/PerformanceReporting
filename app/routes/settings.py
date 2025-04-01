@@ -395,31 +395,34 @@ def test_grafana_query():
     # Ensure URL doesn't end with a slash
     url = url.rstrip('/')
     
-    # Build the full URL with protocol
-    full_url = f"http://{url}"
+    # Build the full URL with protocol (prefer HTTPS)
+    full_url = f"https://{url}"
     current_app.logger.info(f"Using Grafana URL: {full_url}")
     
     try:
         # Set up headers for API request
         headers = {
             'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json; charset=utf-8',
-            'Accept': 'application/json',
-            'Accept-Charset': 'utf-8'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
+        
+        # Log the full headers for debugging (without the actual key value)
+        debug_headers = headers.copy()
+        if 'Authorization' in debug_headers:
+            debug_headers['Authorization'] = 'Bearer ***MASKED***'
+        current_app.logger.info(f"Request headers: {debug_headers}")
         
         # Execute the query through the Grafana API
         current_time = int(time.time())
         one_hour_ago = current_time - 3600
         
+        # Simplified payload structure matching expected Grafana API format
         payload = {
             'queries': [
                 {
                     'refId': 'A',
-                    'datasource': {
-                        'type': 'prometheus',
-                        'uid': 'P8E80F9AEF21F6940'
-                    },
+                    'datasourceId': 1,  # Default Prometheus datasource
                     'expr': query,
                     'instant': True
                 }
@@ -430,20 +433,57 @@ def test_grafana_query():
         
         current_app.logger.info(f"Request payload: {json.dumps(payload)}")
         
+        # First try the ds/query endpoint (Grafana 8+)
+        ds_query_url = f"{full_url}/api/ds/query"
+        current_app.logger.info(f"Trying endpoint: {ds_query_url}")
+        
         response = requests.post(
-            f"{full_url}/api/ds/query",
+            ds_query_url,
             headers=headers,
             json=payload,
             timeout=30
         )
         
+        # If that fails, try the legacy endpoint
+        if response.status_code in [404, 401, 403]:
+            current_app.logger.info(f"First endpoint attempt failed with status {response.status_code}, trying alternative endpoint")
+            # Try alternative endpoint for older Grafana versions
+            legacy_query_url = f"{full_url}/api/datasources/proxy/1/api/v1/query"
+            legacy_payload = {
+                'query': query,
+                'time': current_time
+            }
+            
+            response = requests.post(
+                legacy_query_url,
+                headers=headers,
+                json=legacy_payload,
+                timeout=30
+            )
+        
+        # Log detailed response info
         current_app.logger.info(f"Response status: {response.status_code}")
         current_app.logger.info(f"Response headers: {dict(response.headers)}")
         
+        # Set encoding to ensure proper handling
         response.encoding = 'utf-8'
         
-        if response.status_code != 200:
-            # Handle non-success response
+        if response.status_code == 401:
+            # Handle authentication error (invalid API key)
+            current_app.logger.error("Authentication failed - Invalid API key")
+            error_text = response.text
+            try:
+                error_json = response.json()
+                error_text = json.dumps(error_json)
+            except:
+                pass
+            return jsonify({
+                'success': False,
+                'error': f'Authentication failed: {error_text}'
+            })
+        
+        elif response.status_code != 200:
+            # Handle other non-success responses
             error_text = response.text[:500] if response.text else f"HTTP {response.status_code}"
             current_app.logger.error(f"Query failed: {error_text}")
             return jsonify({
@@ -451,19 +491,17 @@ def test_grafana_query():
                 'error': f'Query failed: {error_text}'
             })
         
-        # Process response to handle any encoding issues
+        # Process response
         try:
             result_data = response.json()
             current_app.logger.info(f"Response data: {json.dumps(result_data)[:500]}...")
             
-            # Safely convert to JSON with UTF-8 encoding
-            return current_app.response_class(
-                json.dumps({
-                    'success': True,
-                    'results': result_data
-                }, ensure_ascii=False),
-                mimetype='application/json; charset=utf-8'
-            )
+            # Return success with results
+            return jsonify({
+                'success': True,
+                'results': result_data
+            })
+            
         except json.JSONDecodeError as e:
             current_app.logger.error(f"Failed to parse Grafana response: {str(e)}")
             current_app.logger.error(f"Response content: {response.text[:500]}")
