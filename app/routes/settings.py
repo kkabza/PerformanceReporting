@@ -26,6 +26,12 @@ def general():
     # Mask the API key for security
     grafana_api_key_masked = "•" * len(grafana_api_key) if grafana_api_key else ''
     
+    # Get Azure DevOps credentials from environment
+    devops_org_url = os.getenv('AZURE_DEVOPS_ORG', 'supercomputing2020')
+    devops_pat = os.getenv('AZURE_DEVOPS_PAT', '')
+    # Mask the PAT for security
+    devops_pat_masked = "•" * len(devops_pat) if devops_pat else ''
+    
     # Get OpenAI endpoint and deployment from environment, and load API key
     openai_endpoint = os.getenv('OPENAI_API_ENDPOINT', 'https://api.openai.com/v1')
     openai_api_key = os.getenv('OPENAI_API_KEY', '')
@@ -38,6 +44,8 @@ def general():
                            app_insights_api_key_masked=app_insights_api_key_masked,
                            grafana_url=grafana_url,
                            grafana_api_key_masked=grafana_api_key_masked,
+                           devops_org_url=devops_org_url,
+                           devops_pat_masked=devops_pat_masked,
                            openai_endpoint=openai_endpoint,
                            openai_api_key_masked=openai_api_key_masked,
                            openai_deployment=openai_deployment)
