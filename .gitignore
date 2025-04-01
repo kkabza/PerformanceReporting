@@ -77,4 +77,7 @@ blazor/
 
 # Tailwind
 node_modules/
-package-lock.json 
+package-lock.json
+
+# SQL directory with legacy data models
+/sql/ 

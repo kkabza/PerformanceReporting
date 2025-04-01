@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Initialize IDE settings for the Florida Tax Certificate Sale Auctions application.
+Initialize IDE settings for the Performance Reporting application.
 This script creates the necessary .vscode/settings.json file with the appropriate theme and settings.
 """
 import os
@@ -250,7 +250,7 @@ def create_tasks_config():
 
 def main():
     """Main function to create all IDE settings"""
-    print("Initializing IDE settings for Florida Tax Certificate Sale Auctions application...")
+    print("Initializing IDE settings for Performance Reporting application...")
     
     settings_path = create_settings_json()
     extensions_path = create_recommended_extensions()

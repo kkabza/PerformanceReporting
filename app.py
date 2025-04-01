@@ -1,5 +1,5 @@
 """
-Florida Tax Certificate Sale Application
+Performance Reporting Application
 """
 import os
 import sys
@@ -104,7 +104,7 @@ app = create_app()
 
 if __name__ == '__main__':
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Florida Tax Certificate Sale Application')
+    parser = argparse.ArgumentParser(description='Performance Reporting Application')
     parser.add_argument('--port', type=int, default=8080, help='Port to run the application on (default: 8080)')
     parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to run the application on (default: 0.0.0.0)')
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')

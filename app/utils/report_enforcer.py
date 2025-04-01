@@ -59,7 +59,7 @@ class ReportEnforcer:
         
         with open(report_path, 'w') as f:
             f.write("====================================\n")
-            f.write("Florida Tax Certificate Sales Test Summary\n")
+            f.write("Performance Reporting Test Summary\n")
             f.write("====================================\n\n")
             f.write(f"Test Run Start Time: {self.session_start.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"Test Run End Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")

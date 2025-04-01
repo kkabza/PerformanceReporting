@@ -1,5 +1,5 @@
 """
-Test reporting utility for Florida Tax Certificate Sale Auctions.
+Test reporting utility for Performance Reporting.
 Follows TDD cursor rules for proper test reporting.
 """
 import os
@@ -107,7 +107,7 @@ class TestReporter:
     def _get_report_header(self):
         """Get the report header"""
         return """====================================
-Florida Tax Certificate Sales Test Summary
+Performance Reporting Test Summary
 ====================================
 """
     

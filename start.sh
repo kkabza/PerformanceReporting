@@ -1,5 +1,5 @@
 #!/bin/bash
-# Simple startup script for Florida Tax Certificate Sale Auctions application
+# Simple startup script for Performance Reporting application
 
 # Colors for prettier output
 GREEN='\033[0;32m'
@@ -9,7 +9,7 @@ YELLOW='\033[0;33m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}${BOLD}Florida Tax Certificate Sale Auctions${NC}"
+echo -e "${BLUE}${BOLD}Performance Reporting${NC}"
 echo -e "${BLUE}${BOLD}======================================${NC}"
 echo -e "${BOLD}TDD-compliant startup with mandatory build reports${NC}"
 

@@ -8,7 +8,8 @@ home_bp = Blueprint('home', __name__)
 
 @home_bp.route('/')
 def index():
-    return render_template('pages/home.html', title="Florida Tax Certificate Sales")
+    """Home page route."""
+    return render_template('pages/home.html', title="Performance Reporting")
 
 @home_bp.route('/debug-sentry')
 def test_sentry():
@@ -18,7 +19,7 @@ def test_sentry():
         return "Sentry not configured. Set SENTRY_DSN environment variable to enable error tracking."
     
     # Log a test message
-    capture_message("Sentry test message from Florida Tax Certificate Sales app", level="info")
+    capture_message("Sentry test message from Performance Reporting app", level="info")
     
     return "Sentry test successful! Check your Sentry dashboard for the test message."
 

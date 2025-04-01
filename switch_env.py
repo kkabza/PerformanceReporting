@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Environment switcher for Florida Tax Certificate Sale application.
+Environment switcher for Performance Reporting application.
 This script helps switch between development, production, and testing environments.
 """
 import os

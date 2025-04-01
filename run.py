@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Startup script for Florida Tax Certificate Sale Auctions web application.
+Startup script for Performance Reporting web application.
 Follows Cursor rules and establishes proper logging and test structures.
 """
 import os
@@ -59,8 +59,8 @@ def setup_logging(log_dir):
         ]
     )
     
-    logger = logging.getLogger('taxsale')
-    logger.info('Starting Florida Tax Certificate Sale Auctions application')
+    logger = logging.getLogger('performance_reporting')
+    logger.info('Starting Performance Reporting application')
     
     return logger
 
@@ -148,7 +148,7 @@ def verify_home_page_loads(port=DEFAULT_PORT, max_attempts=10, wait_time=1):
                 logger.info(f"✅ Home page loaded successfully (HTTP {response.status_code})!")
                 
                 # Check if the page contains expected content
-                if "Florida Tax Certificate" in response.text:
+                if "Performance Reporting" in response.text:
                     logger.info("✅ Home page contains expected content!")
                     return True
                 else:

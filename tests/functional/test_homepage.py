@@ -23,7 +23,7 @@ def test_homepage_loads():
         assert response.status_code == 200, f"Homepage returned HTTP {response.status_code}"
         
         # Check if the page contains expected content
-        assert "Florida Tax Certificate" in response.text, "Homepage doesn't contain expected content"
+        assert "Performance Reporting" in response.text, "Homepage doesn't contain expected content"
         
         print(f"✅ Homepage test passed: Successfully loaded homepage on port {port}")
         return True

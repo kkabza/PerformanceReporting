@@ -1,5 +1,5 @@
 """
-Configuration loader for the Florida Tax Certificate Sale application.
+Configuration loader for the Performance Reporting application.
 Loads the appropriate configuration based on the environment.
 """
 import os

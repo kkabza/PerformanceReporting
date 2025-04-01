@@ -1,5 +1,5 @@
 """
-Development configuration for the Florida Tax Certificate Sale application.
+Development configuration for the Performance Reporting application.
 This configuration is optimized for local development.
 """
 import os

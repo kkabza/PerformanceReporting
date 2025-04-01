@@ -1,5 +1,5 @@
 """
-Base configuration for the Florida Tax Certificate Sale application.
+Base configuration for the Performance Reporting application.
 Contains settings common to all environments.
 """
 import os
@@ -9,7 +9,7 @@ class BaseConfig:
     """Base configuration class with common settings."""
     
     # Application name and version
-    APP_NAME = "Florida Tax Certificate Sale"
+    APP_NAME = "Performance Reporting"
     APP_VERSION = os.getenv('APP_VERSION', '0.1.0')
     BUILD_VERSION = os.getenv('BUILD_VERSION', f"BUILD-20250331-{os.getenv('GIT_HASH', 'dev')}")
     

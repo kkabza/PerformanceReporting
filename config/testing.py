@@ -1,6 +1,6 @@
 """
-Testing configuration for the Florida Tax Certificate Sale application.
-This configuration is optimized for automated tests.
+Testing configuration for the Performance Reporting application.
+This configuration is optimized for CI/CD use.
 """
 import os
 import tempfile
@@ -25,13 +25,13 @@ class TestingConfig(BaseConfig):
     # Disable extensions that make testing harder
     CACHE_TYPE = 'NullCache'
     
-    # Use temporary directories for test files
-    LOG_DIR = os.path.join(tempfile.gettempdir(), 'taxsale_test_logs')
-    BUILD_REPORTS_DIR = os.path.join(tempfile.gettempdir(), 'taxsale_test_reports')
+    # Logs and reports directories (use temp directory to avoid cluttering test environment)
+    LOG_DIR = os.path.join(tempfile.gettempdir(), 'performance_reporting_test_logs')
+    BUILD_REPORTS_DIR = os.path.join(tempfile.gettempdir(), 'performance_reporting_test_reports')
     
-    # Test-specific session handling
+    # Session and cache
     SESSION_TYPE = 'filesystem'
-    SESSION_FILE_DIR = os.path.join(tempfile.gettempdir(), 'taxsale_test_sessions')
+    SESSION_FILE_DIR = os.path.join(tempfile.gettempdir(), 'performance_reporting_test_sessions')
     
     # Disable Sentry in tests
     SENTRY_DSN = None

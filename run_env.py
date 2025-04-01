@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Environment runner for Florida Tax Certificate Sale application.
+Environment runner for Performance Reporting application.
 This script provides a convenient way to run the application in different environments.
 """
 import os
@@ -139,7 +139,7 @@ def run_gunicorn(host='0.0.0.0', port=DEFAULT_PORT, workers=2):
 def main():
     """Main entry point of the script."""
     parser = argparse.ArgumentParser(
-        description="Run the Florida Tax Certificate Sale application in different environments"
+        description="Run the Performance Reporting application in different environments"
     )
     parser.add_argument(
         'environment',

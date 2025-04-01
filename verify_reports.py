@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build Report Verification Script
-Ensures that proper build reports exist for the Florida Tax Certificate Sale application.
+Ensures that proper build reports exist for the Performance Reporting application.
 This tool should be used to explicitly check for compliant build reports.
 """
 import os
@@ -137,7 +137,7 @@ def force_report_generation():
 
 def main():
     """Main function"""
-    print(f"{BOLD}Florida Tax Certificate Sale - Build Report Verification{END}")
+    print(f"{BOLD}Performance Reporting - Build Report Verification{END}")
     print(f"{BOLD}==================================================={END}")
     
     # Check if we want to force generation

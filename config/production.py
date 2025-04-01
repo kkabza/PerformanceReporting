@@ -1,5 +1,5 @@
 """
-Production configuration for the Florida Tax Certificate Sale application.
+Production configuration for the Performance Reporting application.
 This configuration is optimized for security and performance.
 """
 import os
