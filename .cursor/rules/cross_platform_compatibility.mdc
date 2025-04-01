@@ -1,12 +1,78 @@
 # Cross-Platform Compatibility Rule
 
-rules:
-  cross_platform_code:
-    description: "Code must work consistently across different operating systems (Windows, macOS, Linux)"
-    level: error
-    paths:
-      include:
-        - "**/*.py"
-        - "run.py"
-        - "app.py"
-        - "app/utils/report_enforcer.py"
+id: cross-platform-compatibility
+title: Enforce Cross-Platform Code Compatibility
+trigger:
+  files:
+    - "**/*.py"
+    - "run.py"
+    - "app.py"
+    - "app/utils/report_enforcer.py"
+description: |
+  Ensures code works consistently across different operating systems (Windows, macOS, Linux)
+  to prevent startup failures and process management issues on different platforms.
+criteria:
+  - Use OS detection with platform.system() for conditional logic
+  - Implement OS-specific alternatives for system commands
+  - Use platform-agnostic libraries (e.g. psutil) instead of OS-specific commands
+  - Use pathlib.Path for cross-platform file path handling
+  - Validate port availability with socket binding before starting services
+examples:
+  good:
+    - |
+      # Good - Cross-platform port checking
+      def is_port_in_use(port):
+          import socket
+          with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+              return s.connect_ex(('localhost', port)) == 0
+    
+    - |
+      # Good - OS detection for platform-specific behavior
+      import platform
+      if platform.system() == 'Windows':
+          # Windows-specific code
+          subprocess.run(['findstr', 'pattern', 'file'])
+      elif platform.system() == 'Darwin':  # macOS
+          # macOS-specific code
+          subprocess.run(['lsof', '-i', f':{port}'])
+      else:
+          # Linux/other code
+          subprocess.run(['fuser', f'{port}/tcp'])
+  bad:
+    - |
+      # Bad - Platform-specific implementation
+      def is_port_in_use(port):
+          import os
+          return os.system(f"lsof -i:{port}") == 0  # Only works on macOS/Linux
+    
+    - |
+      # Bad - Hardcoded path separator
+      file_path = 'data\\reports\\' + filename  # Windows-specific
+severity: error
+fix_suggestion: |
+  Use platform detection with proper fallbacks:
+  
+  ```python
+  import platform
+  
+  def kill_processes_on_port(port):
+      if platform.system() == 'Windows':
+          # Windows implementation
+          subprocess.run(['taskkill', '/F', '/PID', pid])
+      elif platform.system() == 'Darwin':
+          # macOS implementation
+          subprocess.run(['kill', '-9', pid])
+      else:
+          # Linux implementation
+          subprocess.run(['kill', '-9', pid])
+          
+  # Use socket for cross-platform port checks
+  def is_port_available(port):
+      import socket
+      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+          return s.connect_ex(('localhost', port)) != 0
+          
+  # Use pathlib for file paths
+  from pathlib import Path
+  report_path = Path('data') / 'reports' / filename
+  ``` 

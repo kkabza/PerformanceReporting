@@ -1,13 +1,106 @@
 # API Route Consistency Rule
 
+id: api-route-consistency
+title: Enforce Consistent API Route Paths
+trigger:
+  files:
+    - "app/routes/**/*.py"
+    - "app/templates/**/*.html"
+    - "app/static/js/**/*.js"
+description: |
+  Ensures API routes are defined and called consistently throughout the codebase.
+criteria:
+  - All API routes in blueprints must follow a consistent pattern: '/api/{resource}/{action}'
+  - Frontend fetch calls must use identical paths to the backend routes
+  - Route paths should be centrally defined and imported rather than duplicated
+examples:
+  good:
+    - |
+      # Python route definition
+      @blueprint.route('/api/grafana/test-connection', methods=['POST'])
+      def test_connection():
+          pass
+
+    - |
+      // JavaScript fetch call
+      fetch('/api/grafana/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+      });
+  bad:
+    - |
+      # Inconsistent naming
+      @blueprint.route('/api/settings/grafana/test-connection', methods=['POST'])
+      def test_connection():
+          pass
+
+    - |
+      // Mismatched path
+      fetch('/settings/api/grafana/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+      });
+severity: error
+fix_suggestion: |
+  Define constants for all API routes in a central location and import them in both frontend and backend code.
+  For example, create an `api_routes.py` file with constants like `GRAFANA_TEST_CONNECTION = '/api/grafana/test-connection'`
+  and use these constants in both the route decorators and frontend fetch calls.
+
+## Problem
+Inconsistent API routes between backend definitions and frontend calls lead to:
+- 404 errors when frontend calls routes that don't exist
+- Silent failures in AJAX requests
+- Confusing debugging experiences
+- Production outages
+
+From the logs:
+```
+INFO:werkzeug:127.0.0.1 - - [01/Apr/2025 18:09:38] "POST /api/settings/grafana/test-connection HTTP/1.1" 404 -
+```
+
+## Solution
+Enforce these API route consistency guidelines:
+
+### ✅ Correct API Route Patterns
+- Define all API routes in a consistent pattern: `/api/[resource]/[action]`
+- Use the exact same route paths in frontend fetch/AJAX calls
+- Keep all related API endpoints under the same prefix
+- For Flask blueprints, maintain consistent prefixes
+
+### ❌ Problematic Route Patterns 
+- Mixed patterns like `/settings/api/grafana/test-connection` vs `/api/settings/grafana/test-connection`
+- Different prefixes for related functionality
+- Inconsistent ordering of path segments
+
+## Implementation
+1. Create a central route definition file (e.g., `routes.py` or `constants.js`)
+2. Define route constants: `GRAFANA_TEST_CONNECTION = '/api/grafana/test-connection'`
+3. Import these constants in both backend and frontend code
+4. Use the same constants in route decorators and fetch calls
+
+## Impact
+- **Severity**: High - causes 404 errors and failed API calls
+- **Detection**: Check for 404 responses in logs and browser console
+- **Prevention**: Use shared route constants and consistent patterns
+
+## Glob Patterns
+```yaml
+paths:
+  include:
+    - "app/routes/**/*.py"    # Backend route definitions
+    - "app/templates/**/*.html"    # Frontend templates with fetch calls
+    - "app/static/js/**/*.js"      # JavaScript files with API calls
+```
+
+## Rules
+```yaml
 rules:
-  api_route_consistency:
-    description: "API routes must follow consistent naming patterns across backend and frontend code"
-    level: error
-    paths:
-      include:
-        - "app/routes/**/*.py"
-        - "app/templates/**/*.html"
-        - "app/static/js/**/*.js"
-    patterns:
-      - pattern: "@.*_bp\.route\([\'\"][/]api[/]\w+[/].*[\'\"]"
+  api_route_naming:
+    pattern: "@.*_bp\\.route\\([\\'\\\"]/api/\\w+/.*[\\'\\\"]"
+    message: "API routes should follow the pattern '/api/[resource]/[action]'"
+  
+  js_fetch_calls:
+    pattern: "fetch\\([\\'\\\"]/\\w+/api/"
+    invert: true
+    message: "Frontend fetch calls should use the same route pattern as backend definitions"
+``` 
