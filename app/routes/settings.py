@@ -26,12 +26,11 @@ def general():
     # Mask the API key for security
     grafana_api_key_masked = "•" * len(grafana_api_key) if grafana_api_key else ''
     
-    # Get OpenAI credentials from environment
+    # Get OpenAI endpoint and deployment from environment, but NOT the API key
     openai_endpoint = os.getenv('OPENAI_API_ENDPOINT', 'https://api.openai.com/v1')
-    openai_api_key = os.getenv('OPENAI_API_KEY', '')
     openai_deployment = os.getenv('OPENAI_DEPLOYMENT', 'gpt-3.5-turbo')
-    # Mask the API key for security
-    openai_api_key_masked = "•" * len(openai_api_key) if openai_api_key else ''
+    # Empty API key masked value - don't load from .env by default
+    openai_api_key_masked = ''
     
     return render_template('pages/settings/general.html', 
                            app_insights_url=app_insights_url,
@@ -472,8 +471,15 @@ def test_openai_connection():
         
         # Get endpoint and API key from request or environment variables
         endpoint = data.get('endpoint') or os.getenv('OPENAI_API_ENDPOINT', '')
-        api_key = data.get('api_key') or os.getenv('OPENAI_API_KEY', '')
-        deployment = data.get('deployment') or os.getenv('OPENAI_DEPLOYMENT', 'gpt-35-turbo')
+        deployment = data.get('deployment') or os.getenv('OPENAI_DEPLOYMENT', 'gpt-3.5-turbo')
+        
+        # For the API key, first check if provided in the request
+        api_key = data.get('api_key')
+        
+        # If not provided in request and empty, get from environment as fallback
+        if not api_key:
+            api_key = os.getenv('OPENAI_API_KEY', '')
+            current_app.logger.info("API key not provided in request, using environment variable as fallback")
         
         # Log with proper masking for security
         current_app.logger.info(f"Endpoint: {endpoint}")
@@ -489,7 +495,7 @@ def test_openai_connection():
         
         if not api_key:
             return Response(
-                json.dumps({'success': False, 'error': 'OpenAI API key is required'}, ensure_ascii=False),
+                json.dumps({'success': False, 'error': 'OpenAI API key is required. Please enter your API key.'}, ensure_ascii=False),
                 mimetype='application/json; charset=utf-8',
                 status=400
             )
