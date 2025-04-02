@@ -200,6 +200,31 @@
                                 <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
                                 <div class="grid grid-cols-1 gap-6">
                                     <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Dashboard URL (Optional)</label>
+                                        <input type="text" 
+                                               name="dashboard_url"
+                                               id="dashboard_url"
+                                               class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                               placeholder="e.g., http://10.0.10.16:3000/d/eeh0kvxjev0u8c/nft-7c-mass-beta-tests"
+                                               value="http://10.0.10.16:3000/d/eeh0kvxjev0u8c/nft-7c-mass-beta-tests">
+                                        <p class="mt-1 text-sm text-gray-500">Enter a Grafana dashboard URL to explore its panels</p>
+                                    </div>
+                                    
+                                    <div class="flex justify-end">
+                                        <button type="button"
+                                                onclick="getDashboardInfo()"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-search mr-2"></i>
+                                            Load Dashboard Info
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Dashboard Info Container -->
+                                    <div id="dashboard-info-container" class="mt-4 border rounded-md p-4 bg-gray-50">
+                                        <p class="text-gray-500 text-center">Enter a Grafana dashboard URL and click "Load Dashboard Info" to view panels</p>
+                                    </div>
+                                    
+                                    <div>
                                         <label for="test_query" class="block text-sm font-medium text-gray-700">Test Query</label>
                                         <textarea
                                             id="test_query"
@@ -572,12 +597,12 @@ async function testGrafanaConnection() {
     }
     
     if (!url) {
-        showNotification('Please enter Grafana URL', 'warning');
+        showNotification('Please enter Grafana URL', 'error');
         return;
     }
     
     if (!apiKey) {
-        showNotification('Please enter API Key', 'warning');
+        showNotification('Please enter API Key', 'error');
         return;
     }
     
@@ -1664,6 +1689,212 @@ function displayQueryResults(results) {
             <pre class="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-96">${escapeHtml(JSON.stringify(results, null, 2))}</pre>
         `;
     }
+}
+
+// Function to get dashboard information
+async function getDashboardInfo() {
+    const url = document.getElementById('grafana_url').value;
+    let apiKey = document.getElementById('api_key').value;
+    
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+    }
+    
+    if (!url) {
+        showNotification('Please enter Grafana URL', 'error');
+        return;
+    }
+    
+    if (!apiKey) {
+        showNotification('Please enter API Key', 'error');
+        return;
+    }
+    
+    // Extract dashboard UID from URL if provided
+    const dashboardUrl = document.getElementById('dashboard_url').value;
+    let dashboardUid = '';
+    
+    try {
+        if (dashboardUrl) {
+            // Parse the URL to extract the dashboard UID
+            const urlParts = dashboardUrl.split('/');
+            // URL format is typically /d/[uid]/[dashboard-name]
+            for (let i = 0; i < urlParts.length; i++) {
+                if (urlParts[i] === 'd' && i + 1 < urlParts.length) {
+                    dashboardUid = urlParts[i + 1];
+                    break;
+                }
+            }
+        } else {
+            // Use a default UID for the NFT dashboard
+            dashboardUid = 'eeh0kvxjev0u8c';
+            showNotification('Using default dashboard UID: ' + dashboardUid, 'info');
+        }
+        
+        if (!dashboardUid) {
+            showNotification('Could not extract dashboard UID from URL', 'error');
+            return;
+        }
+        
+        // Show loading indicator
+        document.getElementById('dashboard-info-container').innerHTML = `
+            <div class="flex items-center justify-center p-6 text-blue-600">
+                <i class="fas fa-circle-notch fa-spin mr-2"></i>
+                <span>Loading dashboard information...</span>
+            </div>
+        `;
+        
+        // Make request to our backend
+        const response = await fetch('/settings/grafana/dashboard-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey,
+                dashboard_uid: dashboardUid
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Process and display dashboard info
+            displayDashboardInfo(result.data);
+        } else {
+            // Display error
+            document.getElementById('dashboard-info-container').innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                <strong>Error:</strong> ${result.error || 'Unknown error'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showNotification('Error fetching dashboard info: ' + result.error, 'error');
+        }
+    } catch (error) {
+        // Handle any errors
+        document.getElementById('dashboard-info-container').innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        showNotification('Error: ' + error.message, 'error');
+    }
+}
+
+// Function to display dashboard information
+function displayDashboardInfo(dashboardData) {
+    const container = document.getElementById('dashboard-info-container');
+    
+    if (!dashboardData || !dashboardData.dashboard) {
+        container.innerHTML = `
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            No dashboard data found.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    const dashboard = dashboardData.dashboard;
+    
+    // Create HTML for dashboard info
+    let html = `
+        <div class="space-y-4">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                <h3 class="font-medium text-blue-700">Dashboard: ${dashboard.title}</h3>
+                <p class="text-sm text-blue-600">UID: ${dashboard.uid}</p>
+                <p class="text-sm text-blue-600">Version: ${dashboard.version}</p>
+            </div>
+            
+            <div class="mt-4">
+                <h4 class="font-medium text-gray-700 mb-2">Panels</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    `;
+    
+    // Add panels
+    if (dashboard.panels && dashboard.panels.length > 0) {
+        dashboard.panels.forEach(panel => {
+            html += `
+                <div class="bg-white border rounded-md shadow-sm hover:shadow-md p-3">
+                    <h5 class="font-medium text-gray-800">${panel.title || 'Untitled Panel'}</h5>
+                    <p class="text-xs text-gray-500">ID: ${panel.id}, Type: ${panel.type}</p>
+                    
+                    <div class="mt-2 pt-2 border-t border-gray-100">
+                        <button 
+                            type="button" 
+                            onclick="loadPanelQuery(${panel.id}, '${panel.title || 'Untitled Panel'}')"
+                            class="text-xs text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-code mr-1"></i> View Query
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html += `
+            <div class="col-span-full bg-gray-50 border rounded p-4 text-center text-gray-500">
+                No panels found in this dashboard.
+            </div>
+        `;
+    }
+    
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Function to load the query for a specific panel
+function loadPanelQuery(panelId, panelTitle) {
+    // Store the selected panel info
+    selectedPanelId = panelId;
+    selectedPanelTitle = panelTitle;
+    
+    // TODO: Implement fetching the specific panel query
+    
+    showNotification(`Loading query for panel: ${panelTitle} (ID: ${panelId})`, 'info');
+    
+    // For now, let's suggest a default query
+    const query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+    
+    // Set the query in the textarea
+    document.getElementById('explorer-query').value = query;
+    
+    // Scroll to the query editor
+    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
 }
 </script>
 {% endblock %} 
