@@ -2215,6 +2215,9 @@ function getPanelQuery(panelId) {
                 // Add WHERE clause if it exists
                 if (target.where && target.where.length > 0) {
                     query += ` WHERE ${target.where.join(' ')}`;
+                } else {
+                    // Add time filter if no WHERE clause
+                    query += ` WHERE time > now() - 1h`;
                 }
                 
                 // Add GROUP BY if it exists
@@ -2231,17 +2234,55 @@ function getPanelQuery(panelId) {
             }
             // Last resort - use a default query
             else {
-                query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+                query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
             }
         } else {
             // If no targets found, use a default query
-            query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+            query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
         }
+        
+        // Process Grafana template variables
+        query = processQueryVariables(query);
+        
     } catch (error) {
         console.error("Error extracting query:", error);
-        query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+        query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
     }
     
+    return query;
+}
+
+// Process Grafana template variables in queries
+function processQueryVariables(query) {
+    if (!query) return query;
+    
+    console.log("Original query:", query);
+    
+    // Replace Grafana variables with actual values
+    const replacements = {
+        '$timeFilter': 'time > now() - 1h',
+        '$__timeFilter': 'time > now() - 1h',
+        '$__timeFrom': 'now() - 1h',
+        '$__timeTo': 'now()',
+        '$__interval': '10s',
+        '$__interval_ms': '10000',
+        '$__timeGroup': 'time'
+    };
+    
+    // Replace each variable
+    Object.entries(replacements).forEach(([variable, value]) => {
+        // Escape special characters for regex
+        const escapedVar = variable.replace(/\$/g, '\\$');
+        const regex = new RegExp(escapedVar, 'g');
+        query = query.replace(regex, value);
+    });
+    
+    // Add double quotes around measurement names in FROM clause for InfluxDB compatibility
+    if (query.match(/FROM\s+(\w+)/i) && !query.match(/FROM\s+\"(\w+)\"/i)) {
+        query = query.replace(/FROM\s+(\w+)/gi, 'FROM "$1"');
+    }
+    
+    console.log("Processed query:", query);
     return query;
 }
 
