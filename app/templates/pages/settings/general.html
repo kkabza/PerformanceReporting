@@ -561,6 +561,40 @@ async function testGrafanaQuery() {
                     '</ul>' +
                     '<pre class="text-xs">' + escapeHtml(data.html_response.substring(0, 1000)) + '...</pre>' +
                     '</div>';
+            } else {
+                // Format error with details about the query that was sent
+                let errorHtml = '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700">';
+                
+                // Add error message
+                errorHtml += '<h3 class="font-bold mb-2">Error:</h3>';
+                errorHtml += '<p class="mb-3">' + escapeHtml(data.error) + '</p>';
+                
+                // Add query information
+                if (data.query_sent) {
+                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Query Sent:</h3>';
+                    errorHtml += '<pre class="bg-gray-800 text-white p-2 rounded mb-3 overflow-auto">' + escapeHtml(data.query_sent) + '</pre>';
+                }
+                
+                // Add suggestions if available
+                if (data.suggestion) {
+                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Suggestion:</h3>';
+                    errorHtml += '<div class="bg-blue-50 p-3 rounded border border-blue-200 text-blue-700">' + 
+                                  '<i class="fas fa-lightbulb text-yellow-500 mr-2"></i> ' + 
+                                  escapeHtml(data.suggestion) + 
+                                 '</div>';
+                }
+                
+                // Add details if available
+                if (data.details) {
+                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Error Details:</h3>';
+                    errorHtml += '<pre class="bg-gray-100 p-2 rounded text-xs overflow-auto">' + escapeHtml(data.details) + '</pre>';
+                }
+                
+                errorHtml += '</div>';
+                
+                // Show the error details in the result container
+                document.getElementById('grafanaResultContainer').classList.remove('hidden');
+                document.getElementById('grafanaResultsContent').innerHTML = errorHtml;
             }
             
             showNotification('Error executing query: ' + data.error, 'error');
@@ -630,6 +664,8 @@ function formatGrafanaResults(frames) {
                 }
                 html += '</tr>';
             }
+        } else {
+            html += '<tr><td colspan="100%" class="px-4 py-2 text-center text-gray-500">No data available</td></tr>';
         }
         html += '</tbody></table></div>';
     }

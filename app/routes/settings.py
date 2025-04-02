@@ -173,7 +173,10 @@ def test_grafana_query():
     api_key = data.get('api_key')
     query = data.get('query')
     
-    current_app.logger.info(f"Received query: {query}")
+    # More detailed logging of the request
+    current_app.logger.info(f"Raw received query: '{query}'")
+    current_app.logger.info(f"Query type: {type(query)}")
+    current_app.logger.info(f"Query length: {len(query) if query else 0}")
     current_app.logger.info(f"URL: {url}")
     current_app.logger.info(f"API key length: {len(api_key) if api_key else 0}")
     if api_key:
@@ -220,6 +223,14 @@ def test_grafana_query():
     full_url = f"{protocol}://{url}"
     current_app.logger.info(f"Using Grafana URL: {full_url}")
     
+    # Clean up the query - specifically for InfluxDB queries
+    query = query.strip()
+    current_app.logger.info(f"Cleaned query: '{query}'")
+    
+    # Special handling for InfluxDB SHOW MEASUREMENTS - this often fails with the default Grafana API
+    is_influxdb_show_command = query.upper().startswith('SHOW ') and 'FROM' not in query.upper()
+    current_app.logger.info(f"Detected as InfluxDB SHOW command: {is_influxdb_show_command}")
+    
     # Try the query with authorization header
     try:
         # Set up headers for API request
@@ -239,12 +250,12 @@ def test_grafana_query():
         current_time = int(time.time())
         one_hour_ago = current_time - 3600
         
-        # Simplified payload structure matching expected Grafana API format
+        # Adjust payload for InfluxDB if needed
         payload = {
             'queries': [
                 {
                     'refId': 'A',
-                    'datasourceId': 1,  # Default Prometheus datasource
+                    'datasourceId': 1,  # Default datasource
                     'expr': query,
                     'instant': True
                 }
@@ -253,6 +264,11 @@ def test_grafana_query():
             'to': str(current_time * 1000)
         }
         
+        # For InfluxDB queries, add extra parameters
+        if is_influxdb_show_command:
+            payload['queries'][0]['rawQuery'] = True
+            payload['queries'][0]['query'] = query
+            
         current_app.logger.info(f"Request payload: {json.dumps(payload)}")
         
         # Disable SSL verification for development
@@ -274,6 +290,7 @@ def test_grafana_query():
         # Log response info
         current_app.logger.info(f"Response status: {response.status_code}")
         current_app.logger.info(f"Response content type: {response.headers.get('Content-Type', 'unknown')}")
+        current_app.logger.info(f"Raw response content: {response.text[:200]}...")
         
         # Check if we received HTML instead of JSON (common error case)
         if response.headers.get('Content-Type', '').startswith('text/html'):
@@ -293,6 +310,28 @@ def test_grafana_query():
                 response.encoding = 'utf-8'
                 result_data = response.json()
                 current_app.logger.info(f"Response data: {json.dumps(result_data)[:500]}...")
+                
+                # Check for InfluxDB specific errors in the response
+                if 'results' in result_data and 'results' in result_data['results']:
+                    if 'error' in result_data['results']['A']:
+                        error_msg = result_data['results']['A']['error']
+                        current_app.logger.error(f"InfluxDB error in response: {error_msg}")
+                        
+                        # If it's a parsing error with SHOW MEASUREMENTS, provide specific guidance
+                        if 'SHOW MEASUREMENTS' in query.upper() and 'found FROM' in error_msg:
+                            return jsonify({
+                                'success': False,
+                                'error': 'InfluxDB query syntax error: The server expected a pure "SHOW MEASUREMENTS" command without additional clauses.',
+                                'details': error_msg,
+                                'query_sent': query,
+                                'suggestion': 'Try entering only "SHOW MEASUREMENTS" without any additional text.'
+                            })
+                        
+                        return jsonify({
+                            'success': False,
+                            'error': f'InfluxDB query error: {error_msg}',
+                            'query_sent': query
+                        })
                 
                 # Return success with results
                 return jsonify({
@@ -320,7 +359,8 @@ def test_grafana_query():
             current_app.logger.error(f"Query failed: {error_text}")
             return jsonify({
                 'success': False,
-                'error': f'Query failed: {error_text}'
+                'error': f'Query failed: {error_text}',
+                'query_sent': query
             })
             
         except ValueError as e:
@@ -332,7 +372,8 @@ def test_grafana_query():
             return jsonify({
                 'success': False,
                 'error': f'Unexpected token \'{str(e)}\', "{response.text[:20]}..." is not valid JSON',
-                'html_response': response.text[:500]
+                'html_response': response.text[:500],
+                'query_sent': query
             })
         
     except requests.exceptions.SSLError as e:
@@ -358,5 +399,6 @@ def test_grafana_query():
         current_app.logger.error(f"Error executing Grafana query: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'An error occurred with the Grafana query: {str(e)}'
+            'error': f'An error occurred with the Grafana query: {str(e)}',
+            'query_sent': query
         }) 
