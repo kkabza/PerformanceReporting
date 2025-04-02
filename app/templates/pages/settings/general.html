@@ -200,22 +200,28 @@
                                 <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
                                 <div class="grid grid-cols-1 gap-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Dashboard URL (Optional)</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Dashboard URL or Snapshot URL</label>
                                         <input type="text" 
                                                name="dashboard_url"
                                                id="dashboard_url"
                                                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
                                                placeholder="e.g., http://10.0.10.16:3000/d/eeh0kvxjev0u8c/nft-7c-mass-beta-tests"
-                                               value="http://10.0.10.16:3000/d/eeh0kvxjev0u8c/nft-7c-mass-beta-tests">
-                                        <p class="mt-1 text-sm text-gray-500">Enter a Grafana dashboard URL to explore its panels</p>
+                                               value="http://10.0.10.16:3000/dashboard/snapshot/6vtmNGCckcTvTho8kI7PSH4DfkHDxsAk">
+                                        <p class="mt-1 text-sm text-gray-500">Enter a Grafana dashboard URL or snapshot URL to explore its panels</p>
                                     </div>
                                     
-                                    <div class="flex justify-end">
+                                    <div class="flex justify-end space-x-2">
+                                        <button type="button"
+                                                onclick="getSnapshotInfo()"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            <i class="fas fa-file-image mr-2"></i>
+                                            Load Snapshot
+                                        </button>
                                         <button type="button"
                                                 onclick="getDashboardInfo()"
                                                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             <i class="fas fa-search mr-2"></i>
-                                            Load Dashboard Info
+                                            Load Dashboard
                                         </button>
                                     </div>
                                     
@@ -1895,6 +1901,218 @@ function loadPanelQuery(panelId, panelTitle) {
     
     // Scroll to the query editor
     document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Function to get a Grafana snapshot
+async function getSnapshotInfo() {
+    const url = document.getElementById('grafana_url').value;
+    let apiKey = document.getElementById('api_key').value;
+    
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+    }
+    
+    if (!url) {
+        showNotification('Please enter Grafana URL', 'error');
+        return;
+    }
+    
+    if (!apiKey) {
+        showNotification('Please enter API Key', 'error');
+        return;
+    }
+    
+    // Extract snapshot key from URL
+    const snapshotUrl = document.getElementById('dashboard_url').value;
+    let snapshotKey = '';
+    
+    try {
+        if (snapshotUrl) {
+            // Parse the URL to extract the snapshot key
+            const urlParts = snapshotUrl.split('/');
+            
+            // URL format is typically /dashboard/snapshot/[key]
+            for (let i = 0; i < urlParts.length; i++) {
+                if ((urlParts[i] === 'snapshot' || urlParts[i] === 'snapshots') && i + 1 < urlParts.length) {
+                    snapshotKey = urlParts[i + 1];
+                    // Remove any query parameters
+                    if (snapshotKey.includes('?')) {
+                        snapshotKey = snapshotKey.split('?')[0];
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (!snapshotKey) {
+            showNotification('Could not extract snapshot key from URL', 'error');
+            return;
+        }
+        
+        // Show loading indicator
+        document.getElementById('dashboard-info-container').innerHTML = `
+            <div class="flex items-center justify-center p-6 text-indigo-600">
+                <i class="fas fa-circle-notch fa-spin mr-2"></i>
+                <span>Loading snapshot information...</span>
+            </div>
+        `;
+        
+        // Make request to our backend
+        const response = await fetch('/settings/grafana/snapshot-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey,
+                snapshot_key: snapshotKey
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Process and display snapshot info
+            displaySnapshotInfo(result.data);
+        } else {
+            // Display error
+            document.getElementById('dashboard-info-container').innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                <strong>Error:</strong> ${result.error || 'Unknown error'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showNotification('Error fetching snapshot info: ' + result.error, 'error');
+        }
+    } catch (error) {
+        // Handle any errors
+        document.getElementById('dashboard-info-container').innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        showNotification('Error: ' + error.message, 'error');
+    }
+}
+
+// Function to display snapshot information
+function displaySnapshotInfo(snapshotData) {
+    const container = document.getElementById('dashboard-info-container');
+    
+    if (!snapshotData || !snapshotData.dashboard) {
+        container.innerHTML = `
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            No snapshot data found.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    const dashboard = snapshotData.dashboard;
+    const snapshotInfo = {
+        name: snapshotData.name || 'Unnamed Snapshot',
+        external: snapshotData.external || false,
+        expires: snapshotData.expires ? new Date(snapshotData.expires).toLocaleString() : 'Never',
+        key: snapshotData.key || ''
+    };
+    
+    // Create HTML for dashboard info
+    let html = `
+        <div class="space-y-4">
+            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                <h3 class="font-medium text-indigo-700">Snapshot: ${snapshotInfo.name}</h3>
+                <p class="text-sm text-indigo-600">Key: ${snapshotInfo.key}</p>
+                <p class="text-sm text-indigo-600">Expires: ${snapshotInfo.expires}</p>
+                <p class="text-sm text-indigo-600">Dashboard Title: ${dashboard.title || 'Untitled'}</p>
+            </div>
+            
+            <div class="mt-4">
+                <h4 class="font-medium text-gray-700 mb-2">Snapshot Data</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    `;
+    
+    // Add panels
+    if (dashboard.panels && dashboard.panels.length > 0) {
+        dashboard.panels.forEach(panel => {
+            html += `
+                <div class="bg-white border rounded-md shadow-sm hover:shadow-md p-3">
+                    <h5 class="font-medium text-gray-800">${panel.title || 'Untitled Panel'}</h5>
+                    <p class="text-xs text-gray-500">ID: ${panel.id}, Type: ${panel.type}</p>
+                    
+                    <div class="mt-2 pt-2 border-t border-gray-100">
+                        <button 
+                            type="button" 
+                            onclick="loadSnapshotPanelData(${panel.id}, '${panel.title || 'Untitled Panel'}')"
+                            class="text-xs text-indigo-600 hover:text-indigo-800">
+                            <i class="fas fa-table mr-1"></i> View Data
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html += `
+            <div class="col-span-full bg-gray-50 border rounded p-4 text-center text-gray-500">
+                No panels found in this snapshot.
+            </div>
+        `;
+    }
+    
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Function to load data from a specific snapshot panel
+function loadSnapshotPanelData(panelId, panelTitle) {
+    // Store the selected panel info
+    selectedPanelId = panelId;
+    selectedPanelTitle = panelTitle;
+    
+    showNotification(`Loading data for panel: ${panelTitle} (ID: ${panelId})`, 'info');
+    
+    // Set a basic query for the panel
+    document.getElementById('test_query').value = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 50`;
+    
+    // Focus on the query input
+    document.getElementById('test_query').focus();
+    
+    // Show suggestion to run the query
+    showNotification('Modify the query as needed and click "Run Query" to view the panel data', 'info');
 }
 </script>
 {% endblock %} 

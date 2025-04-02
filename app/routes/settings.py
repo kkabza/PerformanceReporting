@@ -474,3 +474,75 @@ def get_grafana_dashboard():
     except Exception as e:
         current_app.logger.error(f"Error fetching dashboard info: {str(e)}")
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500 
+
+@settings_bp.route('/grafana/snapshot-info', methods=['POST'])
+def get_grafana_snapshot():
+    """Retrieves snapshot data from Grafana using the Grafana API."""
+    data = request.json
+    if not data:
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+    
+    url = data.get('url', '')
+    api_key = data.get('api_key', '')
+    snapshot_key = data.get('snapshot_key', '')
+    
+    # Validate required parameters
+    if not url:
+        return jsonify({'success': False, 'error': 'Grafana URL is required'}), 400
+    if not api_key:
+        return jsonify({'success': False, 'error': 'Grafana API key is required'}), 400
+    if not snapshot_key:
+        return jsonify({'success': False, 'error': 'Snapshot key is required'}), 400
+    
+    # Ensure URL doesn't end with a slash
+    if url.endswith('/'):
+        url = url[:-1]
+    
+    # Create the full API URL for snapshots
+    api_url = f"{url}/api/snapshots/{snapshot_key}"
+    
+    current_app.logger.info(f"Fetching snapshot info from: {api_url}")
+    
+    try:
+        # Make the API request to Grafana
+        headers = {'Authorization': f'Bearer {api_key}'}
+        response = requests.get(api_url, headers=headers, timeout=10)
+        
+        # Log the response status
+        current_app.logger.info(f"Grafana API Response Status: {response.status_code}")
+        current_app.logger.info(f"Response Headers: {dict(response.headers)}")
+        
+        # Check for successful response
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                return jsonify({'success': True, 'data': result})
+            except ValueError as e:
+                # Handle JSON parsing error
+                current_app.logger.error(f"Failed to parse JSON response: {str(e)}")
+                return jsonify({
+                    'success': False, 
+                    'error': 'Failed to parse JSON response',
+                    'details': str(e)
+                }), 500
+        else:
+            # Handle error response
+            try:
+                error_data = response.json()
+                error_message = error_data.get('message', 'Unknown error')
+            except:
+                error_message = f"HTTP error {response.status_code}"
+                
+            return jsonify({
+                'success': False,
+                'error': f"Grafana API error: {error_message}",
+                'status': response.status_code
+            }), response.status_code
+    
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': 'Failed to connect to Grafana API'}), 500
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'Request to Grafana API timed out'}), 500
+    except Exception as e:
+        current_app.logger.error(f"Error fetching snapshot info: {str(e)}")
+        return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500 
