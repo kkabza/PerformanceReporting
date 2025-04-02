@@ -172,9 +172,9 @@
                                         placeholder="For InfluxDB: 
 SHOW MEASUREMENTS
 SHOW DATABASES
-SELECT mean(value) FROM cpu WHERE time > now() - 1h GROUP BY time(5m)"></textarea>
+SELECT * FROM cpu LIMIT 10"></textarea>
                                     <p class="mt-2 text-sm text-gray-500">
-                                        Enter a query to test. For InfluxDB try: <code>SHOW MEASUREMENTS</code> or <code>SHOW DATABASES</code>.
+                                        Enter a query to test. For InfluxDB try: <code>SHOW MEASUREMENTS</code> (without FROM) or <code>SHOW DATABASES</code>.
                                     </p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
