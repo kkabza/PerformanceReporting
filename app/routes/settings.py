@@ -4,6 +4,10 @@ import requests
 import os
 import time
 import json
+import datetime
+import csv
+import io
+import re
 
 # Create blueprint
 settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
@@ -624,3 +628,182 @@ def get_grafana_snapshot():
     except Exception as e:
         current_app.logger.error(f"Unhandled exception in get_grafana_snapshot: {str(e)}")
         return jsonify({'success': False, 'error': f'Unhandled server error: {str(e)}'}), 500 
+
+@settings_bp.route('/grafana/export-csv', methods=['POST'])
+def export_panel_csv():
+    """
+    Export panel data as CSV using Grafana API
+    """
+    try:
+        payload = request.json
+        
+        # Validate required parameters
+        required_fields = ['url', 'api_key', 'dashboard_uid', 'panel_id', 'from', 'to']
+        for field in required_fields:
+            if field not in payload or not payload[field]:
+                return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
+        
+        # Extract parameters
+        grafana_url = payload['url'].rstrip('/')
+        api_key = payload['api_key']
+        dashboard_uid = payload['dashboard_uid']
+        panel_id = payload['panel_id']
+        from_time = payload['from']
+        to_time = payload['to']
+        
+        # Log the export action
+        current_app.logger.info(f"Exporting CSV for dashboard {dashboard_uid}, panel {panel_id}")
+        
+        # Step 1: Get the dashboard data to extract the panel query
+        dashboard_url = f"{grafana_url}/api/dashboards/uid/{dashboard_uid}"
+        dashboard_headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        dashboard_response = requests.get(dashboard_url, headers=dashboard_headers)
+        if dashboard_response.status_code != 200:
+            current_app.logger.error(f"Error fetching dashboard: {dashboard_response.text}")
+            return jsonify({'status': 'error', 'message': f'Failed to fetch dashboard: {dashboard_response.status_code}'}), 500
+        
+        dashboard_data = dashboard_response.json()
+        
+        # Find the panel based on panel_id
+        panel = None
+        for p in dashboard_data.get('dashboard', {}).get('panels', []):
+            if str(p.get('id')) == str(panel_id):
+                panel = p
+                break
+        
+        if not panel:
+            for p in dashboard_data.get('dashboard', {}).get('panels', []):
+                for child in p.get('panels', []):
+                    if str(child.get('id')) == str(panel_id):
+                        panel = child
+                        break
+                if panel:
+                    break
+        
+        if not panel:
+            return jsonify({'status': 'error', 'message': f'Panel with ID {panel_id} not found in dashboard'}), 404
+        
+        # Get datasource info
+        datasource = panel.get('datasource')
+        datasource_uid = None
+        
+        if isinstance(datasource, dict):
+            datasource_uid = datasource.get('uid')
+        else:
+            # For older Grafana versions or when datasource is referenced by name
+            datasource_url = f"{grafana_url}/api/datasources/name/{datasource}"
+            datasource_response = requests.get(datasource_url, headers=dashboard_headers)
+            
+            if datasource_response.status_code == 200:
+                datasource_uid = datasource_response.json().get('uid')
+            else:
+                current_app.logger.warning(f"Could not get datasource by name, using default")
+        
+        # Step 2: Construct query to get data from datasource
+        query_data = {
+            "queries": [
+                {
+                    "refId": target.get("refId", "A"),
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": datasource_uid
+                    },
+                    "query": target.get("query", ""),
+                    "rawQuery": True
+                } for target in panel.get("targets", []) if target.get("query")
+            ],
+            "range": {
+                "from": from_time,
+                "to": to_time,
+                "raw": {
+                    "from": from_time,
+                    "to": to_time
+                }
+            },
+            "from": from_time,
+            "to": to_time
+        }
+        
+        # Step 3: Execute the query
+        query_url = f"{grafana_url}/api/ds/query"
+        query_response = requests.post(
+            query_url,
+            headers=dashboard_headers,
+            json=query_data
+        )
+        
+        if query_response.status_code != 200:
+            current_app.logger.error(f"Error querying datasource: {query_response.text}")
+            return jsonify({'status': 'error', 'message': f'Failed to query datasource: {query_response.status_code}'}), 500
+        
+        query_result = query_response.json()
+        
+        # Step 4: Process the data into CSV format
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Extract data from the response
+        has_written_header = False
+        rows_written = 0
+        
+        for result in query_result.get('results', {}).values():
+            for frame in result.get('frames', []):
+                columns = []
+                data = []
+                
+                # Extract column names from schema
+                for field in frame.get('schema', {}).get('fields', []):
+                    columns.append(field.get('name', f"Column{len(columns)}"))
+                
+                # Extract data values
+                for idx, field in enumerate(frame.get('data', {}).get('values', [])):
+                    if idx == 0 and columns[idx].lower() == 'time':
+                        # Convert timestamps to readable format
+                        data.append([
+                            datetime.datetime.fromtimestamp(val / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                            if isinstance(val, (int, float)) else val
+                            for val in field
+                        ])
+                    else:
+                        data.append(field)
+                
+                # Write header row if not already written
+                if columns and not has_written_header:
+                    writer.writerow(columns)
+                    has_written_header = True
+                
+                # Transpose data for CSV rows
+                if data:
+                    for i in range(len(data[0])):
+                        row = [col[i] if i < len(col) else '' for col in data]
+                        writer.writerow(row)
+                        rows_written += 1
+        
+        if rows_written == 0:
+            current_app.logger.warning("No data returned from query")
+            # If no data, write header row at minimum
+            if not has_written_header and panel.get('targets'):
+                sample_query = panel.get('targets')[0].get('query', '')
+                # Try to extract field names from the query
+                field_match = re.search(r'SELECT\s+(.*?)\s+FROM', sample_query, re.IGNORECASE)
+                if field_match:
+                    fields = [f.strip() for f in field_match.group(1).split(',')]
+                    writer.writerow(['time'] + fields)
+                else:
+                    writer.writerow(['time', 'value'])
+        
+        # Return CSV as downloadable response
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment; filename=panel_{panel_id}_export.csv'}
+        )
+        
+    except Exception as e:
+        current_app.logger.error(f"Error exporting CSV: {str(e)}")
+        return jsonify({'status': 'error', 'message': f'Error exporting CSV: {str(e)}'}), 500 

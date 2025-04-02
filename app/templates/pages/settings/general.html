@@ -247,6 +247,56 @@
                                         <p class="text-gray-500 text-center">Enter a Grafana dashboard URL and click "Load Dashboard Info" to view panels</p>
                                     </div>
                                     
+                                    <!-- CSV Export Form -->
+                                    <div class="mt-6 border rounded-md p-4 bg-blue-50">
+                                        <h4 class="text-md font-medium text-blue-700 mb-3">Export Panel Data as CSV</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Dashboard UID</label>
+                                                <input type="text" 
+                                                    id="csv_dashboard_uid" 
+                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                    placeholder="eeh0kvxjev0u8c"
+                                                    value="eeh0kvxjev0u8c">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Panel ID</label>
+                                                <input type="text" 
+                                                    id="csv_panel_id" 
+                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                    placeholder="73"
+                                                    value="73">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">From Time</label>
+                                                <input type="text" 
+                                                    id="csv_from_time" 
+                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                    placeholder="now-1h"
+                                                    value="2025-04-02T03:24:00Z">
+                                                <p class="mt-1 text-xs text-gray-500">Enter timestamp or relative time like 'now-1h'</p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">To Time</label>
+                                                <input type="text" 
+                                                    id="csv_to_time" 
+                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                    placeholder="now"
+                                                    value="2025-04-02T03:26:10Z">
+                                                <p class="mt-1 text-xs text-gray-500">Enter timestamp or relative time like 'now'</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 flex justify-end">
+                                            <button 
+                                                type="button" 
+                                                onclick="exportPanelCsv()"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                <i class="fas fa-file-csv mr-2"></i>
+                                                Export CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
                                     <div>
                                         <label for="test_query" class="block text-sm font-medium text-gray-700">Test Query</label>
                                         <textarea
@@ -2480,6 +2530,74 @@ async function runSingleQuery(query) {
             </div>
         `;
     }
+}
+
+/*
+* ==================
+* Grafana Query Testing
+* ==================
+*/
+let currentDb = "mass_nft";
+
+/**
+ * Exports panel data as CSV
+ */
+function exportPanelCsv() {
+    const dashboardUid = document.getElementById('csv_dashboard_uid').value.trim();
+    const panelId = document.getElementById('csv_panel_id').value.trim();
+    const fromTime = document.getElementById('csv_from_time').value.trim();
+    const toTime = document.getElementById('csv_to_time').value.trim();
+    
+    if (!dashboardUid || !panelId) {
+        showToast('error', 'Dashboard UID and Panel ID are required');
+        return;
+    }
+    
+    if (!fromTime || !toTime) {
+        showToast('error', 'From and To times are required');
+        return;
+    }
+    
+    // Show loading indicator
+    showToast('info', 'Exporting CSV data...');
+    
+    fetch('/grafana/export-csv', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: document.getElementById('grafana_url').value.trim(),
+            api_key: document.getElementById('grafana_api_key').value.trim(),
+            dashboard_uid: dashboardUid,
+            panel_id: panelId,
+            from: fromTime,
+            to: toTime
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.message || 'Error exporting CSV'); });
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create a download link and trigger the download
+        const filename = `panel_${panelId}_${new Date().toISOString().slice(0,10)}.csv`;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showToast('success', 'CSV downloaded successfully');
+    })
+    .catch(error => {
+        console.error('Error exporting CSV:', error);
+        showToast('error', `Error exporting CSV: ${error.message}`);
+    });
 }
 </script>
 
