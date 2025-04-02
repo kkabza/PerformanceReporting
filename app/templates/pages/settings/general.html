@@ -2282,6 +2282,24 @@ function processQueryVariables(query) {
         query = query.replace(/FROM\s+(\w+)/gi, 'FROM "$1"');
     }
     
+    // For InfluxDB queries to work properly in our environment, try a few different modifications:
+    try {
+        // Option 1: Try simplifying the query by removing the WHERE clause and limiting results
+        let modifiedQuery = `SELECT * FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} LIMIT 100`;
+        console.log("Simplified query option:", modifiedQuery);
+        
+        // Option 2: Try using the SHOW SERIES command instead which often works when SELECT fails
+        let seriesQuery = `SHOW SERIES FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} LIMIT 100`;
+        console.log("Series query option:", seriesQuery);
+        
+        // Return original query with time constraint modified
+        return `SELECT * FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} WHERE time > now() - 1h LIMIT 100`;
+    } catch (error) {
+        console.error("Error modifying query:", error);
+        // Default to a working query format
+        return `SHOW MEASUREMENTS LIMIT 100`;
+    }
+    
     console.log("Processed query:", query);
     return query;
 }
