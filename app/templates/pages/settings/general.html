@@ -1908,9 +1908,15 @@ async function getSnapshotInfo() {
     const url = document.getElementById('grafana_url').value;
     let apiKey = document.getElementById('api_key').value;
     
+    // Debug logging
+    console.log("Getting snapshot info");
+    console.log("Grafana URL:", url);
+    console.log("API key length:", apiKey ? apiKey.length : 0);
+    
     // If empty, try to use environment variable
     if (!apiKey || apiKey.trim() === '') {
         apiKey = "{{ grafana_api_key|default('') }}";
+        console.log("Using API key from environment variable, length:", apiKey ? apiKey.length : 0);
     }
     
     if (!url) {
@@ -1928,9 +1934,12 @@ async function getSnapshotInfo() {
     let snapshotKey = '';
     
     try {
+        console.log("Parsing snapshot URL:", snapshotUrl);
+        
         if (snapshotUrl) {
             // Parse the URL to extract the snapshot key
             const urlParts = snapshotUrl.split('/');
+            console.log("URL parts:", urlParts);
             
             // URL format is typically /dashboard/snapshot/[key]
             for (let i = 0; i < urlParts.length; i++) {
@@ -1940,6 +1949,7 @@ async function getSnapshotInfo() {
                     if (snapshotKey.includes('?')) {
                         snapshotKey = snapshotKey.split('?')[0];
                     }
+                    console.log("Found snapshot key:", snapshotKey);
                     break;
                 }
             }
@@ -1959,7 +1969,15 @@ async function getSnapshotInfo() {
         `;
         
         // Make request to our backend
-        const response = await fetch('/settings/grafana/snapshot-info', {
+        const apiEndpoint = '/settings/grafana/snapshot-info';
+        console.log("Calling API endpoint:", apiEndpoint);
+        console.log("Request payload:", JSON.stringify({
+            url: url,
+            api_key: "***MASKED***",
+            snapshot_key: snapshotKey
+        }));
+        
+        const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1971,7 +1989,9 @@ async function getSnapshotInfo() {
             })
         });
         
+        console.log("Response status:", response.status);
         const result = await response.json();
+        console.log("Response data:", result);
         
         if (result.success) {
             // Process and display snapshot info
@@ -1997,6 +2017,7 @@ async function getSnapshotInfo() {
         }
     } catch (error) {
         // Handle any errors
+        console.error("Error in getSnapshotInfo:", error);
         document.getElementById('dashboard-info-container').innerHTML = `
             <div class="bg-red-50 border-l-4 border-red-500 p-4">
                 <div class="flex">
