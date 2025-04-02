@@ -163,14 +163,24 @@
                             <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Query</label>
+                                    <label for="test_query" class="block text-sm font-medium text-gray-700">Test Query</label>
                                     <textarea
-                                        name="test_query"
                                         id="test_query"
+                                        name="test_query"
                                         rows="3"
                                         class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                        placeholder="Enter your Grafana query here"></textarea>
-                                    <p class="mt-1 text-sm text-gray-500">Example: rate(http_requests_total[5m])</p>
+                                        placeholder="For InfluxDB: SHOW MEASUREMENTS
+FROM mydb.autogen
+SELECT mean(value) FROM cpu WHERE time > now() - 1h GROUP BY time(5m)
+
+For Prometheus: 
+up
+label_values(__name__)
+rate(node_cpu_seconds_total{mode='idle'}[5m])"></textarea>
+                                    <p class="mt-2 text-sm text-gray-500">
+                                        Enter a query to test. For InfluxDB try: <code>SHOW MEASUREMENTS</code> or <code>SHOW DATABASES</code>. 
+                                        For Prometheus try: <code>up</code>.
+                                    </p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
                                     <button type="button"
