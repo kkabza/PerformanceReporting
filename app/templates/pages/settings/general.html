@@ -173,13 +173,12 @@
                                         placeholder="For InfluxDB: 
 SHOW MEASUREMENTS
 SHOW DATABASES
-SELECT * FROM cpu LIMIT 10">SHOW DATABASES</textarea>
+SELECT * FROM cpu LIMIT 10">SHOW MEASUREMENTS ON mass_nft</textarea>
                                     <p class="mt-2 text-sm text-gray-500">
-                                        Try these queries in order: 
-                                        1. <code>SHOW DATABASES</code>
-                                        2. <code>USE mass_nft</code> (sets the database context)
-                                        3. <code>SHOW MEASUREMENTS</code> (lists tables in the current database)
-                                        4. <code>SELECT * FROM measurement_name LIMIT 10</code> (replace 'measurement_name' with a table name)
+                                        Try these queries for the mass_nft database: 
+                                        1. <code>SHOW MEASUREMENTS ON mass_nft</code> (lists tables in the database)
+                                        2. <code>SELECT * FROM mass_nft.autogen.measurement_name LIMIT 10</code> (replace 'measurement_name' with a table name)
+                                        3. <code>SELECT * FROM mass_nft.autogen.measurement_name WHERE time > now() - 24h</code> (data from last 24 hours)
                                     </p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
