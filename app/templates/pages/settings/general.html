@@ -1282,106 +1282,79 @@ function buildQuery(queryType) {
     document.getElementById('explorer-query').value = query;
 }
 
-// Run explorer query
-async function runExplorerQuery() {
-    const query = document.getElementById('explorer-query').value.trim();
-    
-    if (!query) {
-        showNotification('Please enter a query', 'warning');
-        return;
-    }
-    
-    // Show loading state
+// Function to run a query from the explorer
+function runExplorerQuery() {
+    // Show loading indicators
     document.getElementById('explorer-results').classList.remove('hidden');
     document.getElementById('explorer-loading').classList.remove('hidden');
     document.getElementById('explorer-result-container').classList.add('hidden');
     
-    // Disable button during request
-    const button = document.getElementById('runExplorerQueryBtn');
-    button.disabled = true;
-    button.classList.add('opacity-75', 'cursor-not-allowed');
+    // Clear previous results
+    document.getElementById('explorer-results-content').innerHTML = '';
+    
+    // Call the executeQuery function
+    executeQuery();
+}
+
+// Function to execute the query with loading state
+async function executeQuery() {
+    const queryInput = document.getElementById('explorer-query');
+    const query = queryInput.value.trim();
+    const resultsContainer = document.getElementById('query-results');
+    const runButton = document.getElementById('run-query-btn');
+    
+    if (!query) {
+        showNotification('Please enter a query', 'error');
+        return;
+    }
+    
+    // Show loading state
+    runButton.disabled = true;
+    runButton.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-1"></i> Running...';
+    
+    // Clear previous results and show loading
+    resultsContainer.innerHTML = `
+        <div class="flex items-center justify-center p-6 text-blue-600">
+            <i class="fas fa-circle-notch fa-spin mr-2"></i>
+            <span>Executing query...</span>
+        </div>
+    `;
     
     try {
-        const response = await runInfluxQuery(query);
+        // Set a timeout to prevent UI from freezing too long
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Query timed out after 20 seconds')), 20000);
+        });
         
-        // Hide loading spinner
-        document.getElementById('explorer-loading').classList.add('hidden');
+        // Race between the query and the timeout
+        const results = await Promise.race([
+            runInfluxQuery(query),
+            timeoutPromise
+        ]);
         
-        // Enable button
-        button.disabled = false;
-        button.classList.remove('opacity-75', 'cursor-not-allowed');
-        
-        if (response.success) {
-            // Format the results
-            let formattedResults = '';
-            
-            // Check if the response has the expected structure
-            if (response.results && response.results.results) {
-                // Extract the frames data
-                const frames = response.results.results.A.frames;
-                if (frames && frames.length > 0) {
-                    // Generate a formatted table
-                    formattedResults = formatGrafanaResults(frames);
-                } else {
-                    formattedResults = 'Query executed successfully, but no data was returned.';
-                }
-            } else {
-                formattedResults = 'Query executed successfully, but returned an unexpected format.';
-            }
-            
-            // Update the results container
-            document.getElementById('explorer-result-container').classList.remove('hidden');
-            document.getElementById('explorer-results-content').innerHTML = formattedResults;
-            
-            showNotification('Query executed successfully', 'success');
-        } else {
-            // Format error with details about the query that was sent
-            let errorHtml = '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700">';
-            
-            // Add error message
-            errorHtml += '<h3 class="font-bold mb-2">Error:</h3>';
-            errorHtml += '<p class="mb-3">' + escapeHtml(response.error) + '</p>';
-            
-            // Add query information
-            if (response.query_sent) {
-                errorHtml += '<h3 class="font-bold mb-2 mt-4">Query Sent:</h3>';
-                errorHtml += '<pre class="bg-gray-800 text-white p-2 rounded mb-3 overflow-auto">' + escapeHtml(response.query_sent) + '</pre>';
-            }
-            
-            // Add suggestions if available
-            if (response.suggestion) {
-                errorHtml += '<h3 class="font-bold mb-2 mt-4">Suggestion:</h3>';
-                errorHtml += '<div class="bg-blue-50 p-3 rounded border border-blue-200 text-blue-700">' + 
-                              '<i class="fas fa-lightbulb text-yellow-500 mr-2"></i> ' + 
-                              escapeHtml(response.suggestion) + 
-                             '</div>';
-            }
-            
-            // Add details if available
-            if (response.details) {
-                errorHtml += '<h3 class="font-bold mb-2 mt-4">Error Details:</h3>';
-                errorHtml += '<pre class="bg-gray-100 p-2 rounded text-xs overflow-auto">' + escapeHtml(response.details) + '</pre>';
-            }
-            
-            errorHtml += '</div>';
-            
-            // Show the error details in the result container
-            document.getElementById('explorer-result-container').classList.remove('hidden');
-            document.getElementById('explorer-results-content').innerHTML = errorHtml;
-            
-            showNotification('Error executing query: ' + response.error, 'error');
-        }
+        // Display results
+        displayQueryResults(results);
     } catch (error) {
-        // Hide loading spinner and show error
-        document.getElementById('explorer-loading').classList.add('hidden');
-        document.getElementById('explorer-result-container').classList.remove('hidden');
-        document.getElementById('explorer-results-content').innerText = 'Error: ' + error.message;
-        
-        // Enable button
-        button.disabled = false;
-        button.classList.remove('opacity-75', 'cursor-not-allowed');
-        
-        showNotification('Error: ' + error.message, 'error');
+        // Handle any errors
+        resultsContainer.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        console.error('Query execution error:', error);
+    } finally {
+        // Reset button state
+        runButton.disabled = false;
+        runButton.innerHTML = '<i class="fas fa-play mr-1"></i> Run Query';
     }
 }
 
@@ -1405,25 +1378,62 @@ async function runInfluxQuery(query) {
     }
     
     try {
+        // Limit query complexity/length to prevent freezing
+        if (query.length > 1000) {
+            return { 
+                success: false, 
+                error: 'Query is too long. Please simplify your query (max 1000 characters).' 
+            };
+        }
+        
+        // Use the simplest query format for testing
+        let queryToUse = query;
+        
+        // Try to simplify the query if it's a SELECT
+        if (query.toUpperCase().startsWith('SELECT')) {
+            // Add LIMIT if not present
+            if (!query.toUpperCase().includes('LIMIT')) {
+                queryToUse = `${query} LIMIT 100`;
+            }
+        }
+
+        console.log("Running query:", queryToUse);
+        
         // Use Grafana's proxy API endpoint for direct InfluxDB access
-        // This endpoint will forward the query directly to InfluxDB
         const grafanaProxyUrl = `${url}/api/datasources/proxy/1/query`;
         
         // Format the query parameters as InfluxDB expects them
         const queryParams = new URLSearchParams({
             db: database,
-            q: query
+            q: queryToUse,
+            epoch: 'ms'  // Return time values in milliseconds
         });
         
-        console.log("Running query via Grafana proxy API:", query);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
         const response = await fetch(`${grafanaProxyUrl}?${queryParams.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`
-            }
+            },
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        // Check status code first
+        if (!response.ok) {
+            const responseText = await response.text();
+            console.error("API Error:", response.status, responseText);
+            
+            return {
+                success: false,
+                error: `API Error (${response.status}): ${responseText.substring(0, 200)}`,
+                status: response.status
+            };
+        }
         
         // Check content type of response
         const contentType = response.headers.get('content-type');
@@ -1456,6 +1466,13 @@ async function runInfluxQuery(query) {
             };
         }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            return {
+                success: false,
+                error: 'Query timed out after 15 seconds'
+            };
+        }
+        
         console.error("Error executing query:", error);
         return {
             success: false,
