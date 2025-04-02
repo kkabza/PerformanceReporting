@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, Response
+from flask import Blueprint, render_template, jsonify, request, Response, current_app
 from app.routes.auth import login_required
 import requests
 import os
@@ -30,19 +30,17 @@ def test_grafana_connection():
             current_app.logger.info(f"Request JSON data: {data}")
         except Exception as e:
             current_app.logger.error(f"Failed to parse JSON: {str(e)}")
-            return Response(
-                json.dumps({'success': False, 'error': 'Invalid JSON in request'}, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=400
-            )
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid JSON in request'
+            })
             
         if not data:
             current_app.logger.error("No JSON data in request")
-            return Response(
-                json.dumps({'success': False, 'error': 'No data provided'}, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=400
-            )
+            return jsonify({
+                'success': False, 
+                'error': 'No data provided'
+            })
         
         # Get URL and API key from request or environment variables
         url = data.get('url')
@@ -57,27 +55,29 @@ def test_grafana_connection():
             current_app.logger.info(f"No API key provided, using environment variable (length: {len(api_key) if api_key else 0})")
         
         if not url:
-            return Response(
-                json.dumps({'success': False, 'error': 'No Grafana URL provided'}, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=400
-            )
+            return jsonify({
+                'success': False, 
+                'error': 'No Grafana URL provided'
+            })
         
         if not api_key:
-            return Response(
-                json.dumps({'success': False, 'error': 'No Grafana API key provided'}, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=400
-            )
+            return jsonify({
+                'success': False, 
+                'error': 'No Grafana API key provided'
+            })
         
         # Format URL correctly
         if url.startswith('http://'):
             url = url[7:]
+            protocol = 'http'
         elif url.startswith('https://'):
             url = url[8:]
-        
+            protocol = 'https'
+        else:
+            protocol = 'http'  # Default to HTTP
+            
         url = url.rstrip('/')
-        full_url = f"http://{url}"
+        full_url = f"{protocol}://{url}"
         
         current_app.logger.info(f"Testing connection to Grafana at: {full_url}")
         
@@ -88,8 +88,8 @@ def test_grafana_connection():
             'Accept': 'application/json'
         }
         
-        # Test connection by fetching datasources
-        endpoint = f"{full_url}/api/datasources"
+        # Test connection by fetching datasources - using a simple health check is more reliable
+        endpoint = f"{full_url}/api/health"
         current_app.logger.info(f"Testing endpoint: {endpoint}")
         
         response = requests.get(
@@ -100,45 +100,64 @@ def test_grafana_connection():
         )
         
         current_app.logger.info(f"Response status: {response.status_code}")
+        current_app.logger.info(f"Response content type: {response.headers.get('Content-Type', 'unknown')}")
         
-        if response.status_code == 200:
-            current_app.logger.info("Grafana connection successful")
-            return Response(
-                json.dumps({'success': True}, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=200
-            )
-        elif response.status_code == 401 or response.status_code == 403:
-            current_app.logger.error(f"Authentication failed: {response.text}")
-            return Response(
-                json.dumps({
+        # Check if we received HTML instead of JSON (common error case)
+        if response.headers.get('Content-Type', '').startswith('text/html'):
+            current_app.logger.error("Received HTML response instead of JSON")
+            # Include a snippet of the response to help diagnose the issue
+            snippet = response.text[:200] + '...' if len(response.text) > 200 else response.text
+            return jsonify({
+                'success': False,
+                'error': 'Server returned HTML instead of JSON. This usually means a redirect to login page or incorrect URL.',
+                'response_preview': snippet
+            })
+            
+        # Try to parse response as JSON, but handle non-JSON responses gracefully
+        try:
+            if response.status_code == 200:
+                result = response.json()
+                current_app.logger.info("Grafana connection successful")
+                return jsonify({
+                    'success': True,
+                    'version': result.get('version', 'unknown')
+                })
+            elif response.status_code == 401 or response.status_code == 403:
+                current_app.logger.error(f"Authentication failed: {response.text}")
+                return jsonify({
                     'success': False, 
                     'error': f'Authentication failed: {response.text}'
-                }, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=200  # Return 200 so we can display the error message
-            )
-        else:
-            current_app.logger.error(f"Connection failed with status {response.status_code}: {response.text}")
-            return Response(
-                json.dumps({
+                })
+            else:
+                current_app.logger.error(f"Connection failed with status {response.status_code}: {response.text}")
+                return jsonify({
                     'success': False, 
                     'error': f'Connection failed with status {response.status_code}: {response.text}'
-                }, ensure_ascii=True),
-                mimetype='application/json; charset=utf-8',
-                status=200  # Return 200 so we can display the error message
-            )
+                })
+        except ValueError as e:
+            # Handle non-JSON responses
+            current_app.logger.error(f"Invalid response from server: {str(e)}")
+            # Include a snippet of the response to help diagnose the issue
+            snippet = response.text[:200] + '...' if len(response.text) > 200 else response.text
+            return jsonify({
+                'success': False,
+                'error': f'Response was not valid JSON: {str(e)}',
+                'response_preview': snippet
+            })
             
+    except requests.exceptions.RequestException as e:
+        # Handle network errors
+        current_app.logger.error(f"Request exception: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': f'Error connecting to Grafana: {str(e)}'
+        })
     except Exception as e:
         current_app.logger.error(f"Error testing Grafana connection: {str(e)}")
-        return Response(
-            json.dumps({
-                'success': False, 
-                'error': f'Error connecting to Grafana: {str(e)}'
-            }, ensure_ascii=True),
-            mimetype='application/json; charset=utf-8',
-            status=500
-        )
+        return jsonify({
+            'success': False, 
+            'error': f'Error connecting to Grafana: {str(e)}'
+        })
 
 @settings_bp.route('/api/grafana/test-query', methods=['POST'])
 @login_required

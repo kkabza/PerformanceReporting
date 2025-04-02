@@ -368,15 +368,35 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function testGrafanaConnection() {
+    console.log("Test Grafana connection called");
     const url = document.getElementById('grafana_url').value;
-    const apiKey = document.getElementById('api_key').value;
+    let apiKey = document.getElementById('api_key').value;
     
-    if (!url || !apiKey) {
-        alert('Please enter both Grafana URL and API Key');
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+        console.log("Using API key from environment variables");
+    }
+    
+    if (!url) {
+        showNotification('Please enter Grafana URL', 'warning');
         return;
     }
-
+    
+    if (!apiKey) {
+        showNotification('Please enter API Key', 'warning');
+        return;
+    }
+    
+    console.log("URL:", url);
+    console.log("API Key length:", apiKey.length);
+    
     try {
+        // Show loading state
+        const saveButton = document.querySelector('button[type="submit"]');
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Testing...';
+        
         const response = await fetch('/api/grafana/test-connection', {
             method: 'POST',
             headers: {
@@ -389,13 +409,37 @@ async function testGrafanaConnection() {
         });
 
         const data = await response.json();
+        
+        // Reset button state
+        saveButton.disabled = false;
+        saveButton.innerHTML = 'Save Changes';
+        
         if (data.success) {
-            alert('Connection successful!');
+            showNotification(`Connection successful! Grafana version: ${data.version || 'unknown'}`, 'success');
         } else {
-            alert('Connection failed: ' + data.error);
+            let errorMessage = `Connection failed: ${data.error}`;
+            
+            // Create error details element if there's a preview
+            if (data.response_preview) {
+                // Add error details to the page
+                const resultsDiv = document.getElementById('queryResults');
+                const resultsContent = document.getElementById('queryResultsContent');
+                
+                resultsDiv.classList.remove('hidden');
+                resultsContent.textContent = `Error details:\n${data.response_preview}`;
+                
+                errorMessage += '\nSee details below for more information.';
+            }
+            
+            showNotification(errorMessage, 'error');
         }
     } catch (error) {
-        alert('Error testing connection: ' + error.message);
+        // Reset button state
+        const saveButton = document.querySelector('button[type="submit"]');
+        saveButton.disabled = false;
+        saveButton.innerHTML = 'Save Changes';
+        
+        showNotification(`Error testing connection: ${error.message}`, 'error');
     }
 }
 
