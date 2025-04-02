@@ -133,83 +133,240 @@
             <div id="grafana" class="tab-content hidden">
                 <div class="p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-6">Grafana API Configuration</h3>
+                    
+                    <!-- Grafana Sub-Tabs -->
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav class="-mb-px flex space-x-6" aria-label="Grafana Tabs">
+                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm active" 
+                                    onclick="switchGrafanaTab('grafana-connection')" 
+                                    data-grafana-tab="grafana-connection">
+                                <i class="fas fa-plug mr-2"></i>
+                                Connection Settings
+                            </button>
+                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" 
+                                    onclick="switchGrafanaTab('grafana-query')" 
+                                    data-grafana-tab="grafana-query">
+                                <i class="fas fa-terminal mr-2"></i>
+                                Query Test
+                            </button>
+                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" 
+                                    onclick="switchGrafanaTab('grafana-explorer')" 
+                                    data-grafana-tab="grafana-explorer">
+                                <i class="fas fa-compass mr-2"></i>
+                                InfluxQL Explorer
+                            </button>
+                        </nav>
+                    </div>
+                    
                     <form class="space-y-8" id="grafanaForm">
-                        <!-- Connection Settings -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">Connection Settings</h4>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Grafana URL</label>
-                                    <input type="text" 
-                                           name="grafana_url"
-                                           id="grafana_url"
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                           placeholder="https://your-grafana-instance.com"
-                                           value="{{ grafana_url|default('http://10.0.10.16:3000/') }}">
-                                    <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
+                        <!-- Connection Settings Tab -->
+                        <div id="grafana-connection" class="grafana-tab-content active">
+                            <div>
+                                <h4 class="text-md font-medium text-gray-800 mb-4">Connection Settings</h4>
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Grafana URL</label>
+                                        <input type="text" 
+                                               name="grafana_url"
+                                               id="grafana_url"
+                                               class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                               placeholder="https://your-grafana-instance.com"
+                                               value="{{ grafana_url|default('http://10.0.10.16:3000/') }}">
+                                        <p class="mt-1 text-sm text-gray-500">Your Grafana instance URL</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                                        <input type="password" 
+                                               name="api_key"
+                                               id="api_key"
+                                               class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
+                                        <p class="mt-1 text-sm text-gray-500">API key with Viewer permissions</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                                    <input type="password" 
-                                           name="api_key"
-                                           id="api_key"
-                                           class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200">
-                                    <p class="mt-1 text-sm text-gray-500">API key with Viewer permissions</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Test Query -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
-                            <div class="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label for="test_query" class="block text-sm font-medium text-gray-700">Test Query</label>
-                                    <textarea
-                                        id="test_query"
-                                        name="test_query"
-                                        rows="3"
-                                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                        placeholder="For InfluxDB: 
-SHOW MEASUREMENTS
-SHOW DATABASES
-SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h LIMIT 100</textarea>
-                                    <p class="mt-2 text-sm text-gray-500">
-                                        Sample queries for jmeter data:
-                                        1. <code>SELECT * FROM mass_nft.autogen.jmeter LIMIT 50</code> (most recent 50 records)
-                                        2. <code>SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h</code> (data from last hour)
-                                        3. <code>SELECT mean("value") FROM mass_nft.autogen.jmeter WHERE time > now() - 1d GROUP BY time(30m)</code> (30-min averages)
-                                    </p>
-                                </div>
-                                <div class="flex justify-end space-x-4">
+                                <div class="flex justify-end mt-6">
                                     <button type="button"
                                             onclick="testGrafanaConnection()"
                                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <i class="fas fa-plug mr-2"></i>
                                         Test Connection
                                     </button>
-                                    <button type="button"
-                                            id="testGrafanaQueryBtn"
-                                            onclick="testGrafanaQuery()"
-                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        <i class="fas fa-play mr-2"></i>
-                                        Run Query
-                                    </button>
                                 </div>
                             </div>
-                            <!-- Query Results -->
-                            <div id="grafanaResults" class="mt-6 hidden">
-                                <!-- Loading spinner -->
-                                <div id="grafanaLoading" class="flex items-center space-x-2 py-4">
-                                    <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500"></div>
-                                    <span class="text-gray-600">Loading results...</span>
+                        </div>
+                        
+                        <!-- Query Test Tab -->
+                        <div id="grafana-query" class="grafana-tab-content hidden">
+                            <div>
+                                <h4 class="text-md font-medium text-gray-800 mb-4">Test Query</h4>
+                                <div class="grid grid-cols-1 gap-6">
+                                    <div>
+                                        <label for="test_query" class="block text-sm font-medium text-gray-700">Test Query</label>
+                                        <textarea
+                                            id="test_query"
+                                            name="test_query"
+                                            rows="3"
+                                            class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
+                                            placeholder="For InfluxDB: 
+SHOW MEASUREMENTS
+SHOW DATABASES
+SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h LIMIT 100</textarea>
+                                        <p class="mt-2 text-sm text-gray-500">
+                                            Sample queries for jmeter data:
+                                            1. <code>SELECT * FROM mass_nft.autogen.jmeter LIMIT 50</code> (most recent 50 records)
+                                            2. <code>SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h</code> (data from last hour)
+                                            3. <code>SELECT mean("value") FROM mass_nft.autogen.jmeter WHERE time > now() - 1d GROUP BY time(30m)</code> (30-min averages)
+                                        </p>
+                                    </div>
+                                    <div class="flex justify-end space-x-4">
+                                        <button type="button"
+                                                id="testGrafanaQueryBtn"
+                                                onclick="testGrafanaQuery()"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <i class="fas fa-play mr-2"></i>
+                                            Run Query
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- InfluxQL Explorer Tab -->
+                        <div id="grafana-explorer" class="grafana-tab-content hidden">
+                            <div>
+                                <h4 class="text-md font-medium text-gray-800 mb-4">InfluxQL Explorer</h4>
+                                
+                                <!-- Explorer UI -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <!-- Left Panel: Database Tree -->
+                                    <div class="md:col-span-1 border border-gray-300 rounded-md p-4 bg-gray-50">
+                                        <h5 class="font-medium text-sm text-gray-700 mb-3">Database Structure</h5>
+                                        
+                                        <!-- Database selector -->
+                                        <div class="mb-4">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">Database</label>
+                                            <select id="explorer-database" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                                <option value="mass_nft">mass_nft</option>
+                                            </select>
+                                            <button type="button" onclick="loadDatabases()" class="mt-1 text-xs text-blue-600 hover:text-blue-800 cursor-pointer">
+                                                Refresh
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Tree View -->
+                                        <div id="database-tree" class="text-sm text-gray-700 overflow-auto max-h-96">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-circle-notch fa-spin text-blue-500 mr-2"></i>
+                                                <span>Loading database structure...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Right Panel: Query Builder -->
+                                    <div class="md:col-span-2 border border-gray-300 rounded-md p-4">
+                                        <!-- Quick Action Buttons -->
+                                        <div class="flex flex-wrap gap-2 mb-4">
+                                            <button type="button" onclick="buildQuery('SHOW DATABASES')" class="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                SHOW DATABASES
+                                            </button>
+                                            <button type="button" onclick="buildQuery('SHOW MEASUREMENTS')" class="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                SHOW MEASUREMENTS
+                                            </button>
+                                            <button type="button" onclick="buildQuery('SHOW SERIES')" class="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                SHOW SERIES
+                                            </button>
+                                            <button type="button" onclick="buildQuery('SHOW TAG KEYS')" class="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                SHOW TAG KEYS
+                                            </button>
+                                            <button type="button" onclick="buildQuery('SHOW FIELD KEYS')" class="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                SHOW FIELD KEYS
+                                            </button>
+                                            <button type="button" onclick="buildQuery('use-selected')" class="px-3 py-1 text-xs rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
+                                                SELECT FROM MEASUREMENT
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Query Builder Form -->
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Query</label>
+                                                <textarea 
+                                                    id="explorer-query" 
+                                                    rows="4" 
+                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
+                                                    placeholder="Enter InfluxQL query or use the buttons above to generate one"></textarea>
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Time Range</label>
+                                                    <select id="explorer-time-range" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                                        <option value="30m">Last 30 minutes</option>
+                                                        <option value="1h">Last 1 hour</option>
+                                                        <option value="3h">Last 3 hours</option>
+                                                        <option value="6h">Last 6 hours</option>
+                                                        <option value="12h">Last 12 hours</option>
+                                                        <option value="24h" selected>Last 24 hours</option>
+                                                        <option value="2d">Last 2 days</option>
+                                                        <option value="7d">Last 7 days</option>
+                                                        <option value="30d">Last 30 days</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Limit</label>
+                                                    <select id="explorer-limit" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                                        <option value="10">10 rows</option>
+                                                        <option value="25">25 rows</option>
+                                                        <option value="50" selected>50 rows</option>
+                                                        <option value="100">100 rows</option>
+                                                        <option value="500">500 rows</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div class="self-end">
+                                                    <button 
+                                                        type="button" 
+                                                        id="runExplorerQueryBtn"
+                                                        onclick="runExplorerQuery()"
+                                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                        <i class="fas fa-play mr-2"></i>
+                                                        Run Query
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <!-- Results container -->
-                                <div id="grafanaResultContainer" class="hidden">
-                                    <h3 class="text-lg font-semibold mt-4 mb-2">Query Results</h3>
-                                    <div id="grafanaResultsContent" class="border rounded p-4 bg-gray-50 font-mono text-sm overflow-auto max-h-96"></div>
+                                <!-- Query Results -->
+                                <div id="explorer-results" class="mt-6 hidden">
+                                    <!-- Loading spinner -->
+                                    <div id="explorer-loading" class="flex items-center space-x-2 py-4">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500"></div>
+                                        <span class="text-gray-600">Loading results...</span>
+                                    </div>
+                                    
+                                    <!-- Results container -->
+                                    <div id="explorer-result-container" class="hidden">
+                                        <h3 class="text-lg font-semibold mt-4 mb-2">Query Results</h3>
+                                        <div id="explorer-results-content" class="border rounded p-4 bg-gray-50 font-mono text-sm overflow-auto max-h-96"></div>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Query Results section (shared) -->
+                        <div id="grafanaResults" class="mt-6 hidden">
+                            <!-- Loading spinner -->
+                            <div id="grafanaLoading" class="flex items-center space-x-2 py-4">
+                                <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500"></div>
+                                <span class="text-gray-600">Loading results...</span>
+                            </div>
+                            
+                            <!-- Results container -->
+                            <div id="grafanaResultContainer" class="hidden">
+                                <h3 class="text-lg font-semibold mt-4 mb-2">Query Results</h3>
+                                <div id="grafanaResultsContent" class="border rounded p-4 bg-gray-50 font-mono text-sm overflow-auto max-h-96"></div>
                             </div>
                         </div>
                     </form>
@@ -385,6 +542,12 @@ async function testAppInsightsConnection() {
 // Initialize active tab
 document.addEventListener('DOMContentLoaded', function() {
     switchTab('devops');
+    
+    // Add event listener for database selector changes
+    const dbSelector = document.getElementById('explorer-database');
+    if (dbSelector) {
+        dbSelector.addEventListener('change', loadDatabaseStructure);
+    }
 });
 
 async function testGrafanaConnection() {
@@ -777,6 +940,486 @@ function dismissNotification(id) {
         setTimeout(() => {
             notification.remove();
         }, 300);
+    }
+}
+
+// Function to switch between Grafana tabs
+function switchGrafanaTab(tabId) {
+    // Hide all Grafana tabs
+    document.querySelectorAll('.grafana-tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Remove active class from all Grafana tab buttons
+    document.querySelectorAll('.grafana-tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabId).classList.remove('hidden');
+    
+    // Add active class to selected button
+    const activeButton = document.querySelector(`[data-grafana-tab="${tabId}"]`);
+    activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    activeButton.classList.add('border-blue-500', 'text-blue-600');
+
+    // Load database structure if explorer tab was selected
+    if (tabId === 'grafana-explorer') {
+        loadDatabaseStructure();
+    }
+}
+
+// Load list of databases
+async function loadDatabases() {
+    showNotification('Loading databases...', 'info');
+    
+    try {
+        const response = await runInfluxQuery('SHOW DATABASES');
+        if (response.success) {
+            // Create database selector options
+            const dbSelector = document.getElementById('explorer-database');
+            dbSelector.innerHTML = ''; // Clear existing options
+            
+            // Extract database names from results
+            const frames = response.results.results.A.frames;
+            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
+                const databaseNames = frames[0].data.values[0];
+                databaseNames.forEach(dbName => {
+                    const option = document.createElement('option');
+                    option.value = dbName;
+                    option.textContent = dbName;
+                    if (dbName === 'mass_nft') {
+                        option.selected = true;
+                    }
+                    dbSelector.appendChild(option);
+                });
+            }
+            
+            // Trigger loading of database structure for selected DB
+            loadDatabaseStructure();
+            
+            showNotification('Databases loaded successfully', 'success');
+        } else {
+            showNotification('Failed to load databases: ' + response.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Error loading databases: ' + error.message, 'error');
+    }
+}
+
+// Load database structure
+async function loadDatabaseStructure() {
+    const dbName = document.getElementById('explorer-database').value;
+    const treeContainer = document.getElementById('database-tree');
+    
+    // Show loading state
+    treeContainer.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-circle-notch fa-spin text-blue-500 mr-2"></i>
+            <span>Loading database structure...</span>
+        </div>
+    `;
+    
+    try {
+        // First get measurements in the database
+        const measurementsQuery = `SHOW MEASUREMENTS ON ${dbName}`;
+        const measurementsResponse = await runInfluxQuery(measurementsQuery);
+        
+        if (!measurementsResponse.success) {
+            treeContainer.innerHTML = `<div class="text-red-500">Error loading measurements: ${measurementsResponse.error}</div>`;
+            return;
+        }
+        
+        // Extract measurements from the response
+        const frames = measurementsResponse.results.results.A.frames;
+        let measurements = [];
+        
+        if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
+            // Extract measurements from the first column
+            measurements = frames[0].data.values[0] || [];
+        }
+        
+        // Build HTML for tree view
+        let treeHtml = '';
+        
+        // Database node
+        treeHtml += `
+            <div class="mb-3">
+                <div class="flex items-center font-medium">
+                    <i class="fas fa-database text-blue-500 mr-2"></i>
+                    <span>${dbName}</span>
+                </div>
+            </div>
+        `;
+        
+        // Measurements
+        if (measurements.length > 0) {
+            treeHtml += `<div class="ml-4 space-y-2">`;
+            
+            // Add each measurement
+            for (const measurement of measurements) {
+                treeHtml += `
+                    <div class="measurement-item">
+                        <div class="flex items-center cursor-pointer hover:text-blue-600" 
+                             onclick="loadMeasurementDetails('${dbName}', '${measurement}')" 
+                             data-measurement="${measurement}">
+                            <i class="fas fa-table text-green-500 mr-2"></i>
+                            <span>${measurement}</span>
+                        </div>
+                        <div class="measurement-details ml-4 hidden" id="details-${measurement}">
+                            <div class="flex items-center">
+                                <i class="fas fa-circle-notch fa-spin text-blue-300 mr-2"></i>
+                                <span class="text-xs">Loading details...</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            treeHtml += `</div>`;
+        } else {
+            treeHtml += `<div class="ml-4 text-gray-500">No measurements found</div>`;
+        }
+        
+        // Update the tree container
+        treeContainer.innerHTML = treeHtml;
+    } catch (error) {
+        treeContainer.innerHTML = `<div class="text-red-500">Error: ${error.message}</div>`;
+    }
+}
+
+// Load details for a specific measurement
+async function loadMeasurementDetails(dbName, measurementName) {
+    const detailsContainer = document.getElementById(`details-${measurementName}`);
+    
+    // Toggle visibility
+    if (!detailsContainer.classList.contains('hidden')) {
+        detailsContainer.classList.add('hidden');
+        return;
+    }
+    
+    detailsContainer.classList.remove('hidden');
+    
+    // Show loading state
+    detailsContainer.innerHTML = `
+        <div class="flex items-center py-1">
+            <i class="fas fa-circle-notch fa-spin text-blue-300 mr-2"></i>
+            <span class="text-xs">Loading details...</span>
+        </div>
+    `;
+    
+    try {
+        // Get field keys
+        const fieldKeysQuery = `SHOW FIELD KEYS ON ${dbName} FROM "${measurementName}"`;
+        const fieldKeysResponse = await runInfluxQuery(fieldKeysQuery);
+        
+        // Get tag keys
+        const tagKeysQuery = `SHOW TAG KEYS ON ${dbName} FROM "${measurementName}"`;
+        const tagKeysResponse = await runInfluxQuery(tagKeysQuery);
+        
+        // Build details HTML
+        let detailsHtml = '';
+        
+        // Add fields
+        if (fieldKeysResponse.success) {
+            const frames = fieldKeysResponse.results.results.A.frames;
+            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
+                detailsHtml += `
+                    <div class="my-1">
+                        <div class="flex items-center text-xs font-medium text-gray-600 mb-1">
+                            <i class="fas fa-hashtag text-yellow-500 mr-1"></i>
+                            <span>Fields</span>
+                        </div>
+                        <div class="ml-3 text-xs space-y-1">
+                `;
+                
+                // Get field names and types
+                const fieldNames = frames[0].data.values[0] || [];
+                const fieldTypes = frames[0].data.values[1] || [];
+                
+                for (let i = 0; i < fieldNames.length; i++) {
+                    const fieldName = fieldNames[i];
+                    const fieldType = fieldTypes[i];
+                    
+                    detailsHtml += `
+                        <div class="flex items-center">
+                            <span class="text-gray-700">${fieldName}</span>
+                            <span class="ml-1 text-gray-500">(${fieldType})</span>
+                        </div>
+                    `;
+                }
+                
+                detailsHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Add tags
+        if (tagKeysResponse.success) {
+            const frames = tagKeysResponse.results.results.A.frames;
+            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
+                detailsHtml += `
+                    <div class="my-1">
+                        <div class="flex items-center text-xs font-medium text-gray-600 mb-1">
+                            <i class="fas fa-tag text-purple-500 mr-1"></i>
+                            <span>Tags</span>
+                        </div>
+                        <div class="ml-3 text-xs space-y-1">
+                `;
+                
+                // Get tag names
+                const tagNames = frames[0].data.values[0] || [];
+                
+                for (const tagName of tagNames) {
+                    detailsHtml += `
+                        <div class="flex items-center">
+                            <span class="text-gray-700">${tagName}</span>
+                        </div>
+                    `;
+                }
+                
+                detailsHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Add quick query buttons
+        detailsHtml += `
+            <div class="mt-2 text-xs flex space-x-1">
+                <button 
+                    onclick="buildQueryForMeasurement('${dbName}', '${measurementName}')" 
+                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
+                    Query
+                </button>
+                <button 
+                    onclick="buildTagValuesQuery('${dbName}', '${measurementName}')" 
+                    class="px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors">
+                    Tag Values
+                </button>
+            </div>
+        `;
+        
+        // Update the details container
+        detailsContainer.innerHTML = detailsHtml;
+    } catch (error) {
+        detailsContainer.innerHTML = `<div class="text-xs text-red-500 py-1">Error: ${error.message}</div>`;
+    }
+}
+
+// Build a query for the specific measurement
+function buildQueryForMeasurement(dbName, measurementName) {
+    const query = `SELECT * FROM ${dbName}.autogen.${measurementName} LIMIT 50`;
+    document.getElementById('explorer-query').value = query;
+    
+    // Smooth scroll to the query editor
+    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Build a query to show tag values for the measurement
+function buildTagValuesQuery(dbName, measurementName) {
+    const query = `SHOW TAG VALUES ON ${dbName} FROM "${measurementName}" WITH KEY = "host"`;
+    document.getElementById('explorer-query').value = query;
+    
+    // Smooth scroll to the query editor
+    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Build a query based on button click
+function buildQuery(queryType) {
+    const dbName = document.getElementById('explorer-database').value;
+    let query = '';
+    
+    switch (queryType) {
+        case 'SHOW DATABASES':
+            query = 'SHOW DATABASES';
+            break;
+        case 'SHOW MEASUREMENTS':
+            query = `SHOW MEASUREMENTS ON ${dbName}`;
+            break;
+        case 'SHOW SERIES':
+            query = `SHOW SERIES ON ${dbName}`;
+            break;
+        case 'SHOW TAG KEYS':
+            query = `SHOW TAG KEYS ON ${dbName}`;
+            break;
+        case 'SHOW FIELD KEYS':
+            query = `SHOW FIELD KEYS ON ${dbName}`;
+            break;
+        case 'use-selected':
+            // Get selected measurement from the tree
+            const selectedElements = document.querySelectorAll('.measurement-item');
+            for (const element of selectedElements) {
+                const details = element.querySelector('.measurement-details');
+                if (details && !details.classList.contains('hidden')) {
+                    const measurementName = element.querySelector('[data-measurement]').getAttribute('data-measurement');
+                    query = `SELECT * FROM ${dbName}.autogen.${measurementName} WHERE time > now() - 24h LIMIT 50`;
+                    break;
+                }
+            }
+            if (!query) {
+                showNotification('Please select a measurement first', 'warning');
+                return;
+            }
+            break;
+    }
+    
+    // Set the query in the editor
+    document.getElementById('explorer-query').value = query;
+}
+
+// Run explorer query
+async function runExplorerQuery() {
+    const query = document.getElementById('explorer-query').value.trim();
+    
+    if (!query) {
+        showNotification('Please enter a query', 'warning');
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('explorer-results').classList.remove('hidden');
+    document.getElementById('explorer-loading').classList.remove('hidden');
+    document.getElementById('explorer-result-container').classList.add('hidden');
+    
+    // Disable button during request
+    const button = document.getElementById('runExplorerQueryBtn');
+    button.disabled = true;
+    button.classList.add('opacity-75', 'cursor-not-allowed');
+    
+    try {
+        const response = await runInfluxQuery(query);
+        
+        // Hide loading spinner
+        document.getElementById('explorer-loading').classList.add('hidden');
+        
+        // Enable button
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
+        
+        if (response.success) {
+            // Format the results
+            let formattedResults = '';
+            
+            // Check if the response has the expected structure
+            if (response.results && response.results.results) {
+                // Extract the frames data
+                const frames = response.results.results.A.frames;
+                if (frames && frames.length > 0) {
+                    // Generate a formatted table
+                    formattedResults = formatGrafanaResults(frames);
+                } else {
+                    formattedResults = 'Query executed successfully, but no data was returned.';
+                }
+            } else {
+                formattedResults = 'Query executed successfully, but returned an unexpected format.';
+            }
+            
+            // Update the results container
+            document.getElementById('explorer-result-container').classList.remove('hidden');
+            document.getElementById('explorer-results-content').innerHTML = formattedResults;
+            
+            showNotification('Query executed successfully', 'success');
+        } else {
+            // Format error with details about the query that was sent
+            let errorHtml = '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700">';
+            
+            // Add error message
+            errorHtml += '<h3 class="font-bold mb-2">Error:</h3>';
+            errorHtml += '<p class="mb-3">' + escapeHtml(response.error) + '</p>';
+            
+            // Add query information
+            if (response.query_sent) {
+                errorHtml += '<h3 class="font-bold mb-2 mt-4">Query Sent:</h3>';
+                errorHtml += '<pre class="bg-gray-800 text-white p-2 rounded mb-3 overflow-auto">' + escapeHtml(response.query_sent) + '</pre>';
+            }
+            
+            // Add suggestions if available
+            if (response.suggestion) {
+                errorHtml += '<h3 class="font-bold mb-2 mt-4">Suggestion:</h3>';
+                errorHtml += '<div class="bg-blue-50 p-3 rounded border border-blue-200 text-blue-700">' + 
+                              '<i class="fas fa-lightbulb text-yellow-500 mr-2"></i> ' + 
+                              escapeHtml(response.suggestion) + 
+                             '</div>';
+            }
+            
+            // Add details if available
+            if (response.details) {
+                errorHtml += '<h3 class="font-bold mb-2 mt-4">Error Details:</h3>';
+                errorHtml += '<pre class="bg-gray-100 p-2 rounded text-xs overflow-auto">' + escapeHtml(response.details) + '</pre>';
+            }
+            
+            errorHtml += '</div>';
+            
+            // Show the error details in the result container
+            document.getElementById('explorer-result-container').classList.remove('hidden');
+            document.getElementById('explorer-results-content').innerHTML = errorHtml;
+            
+            showNotification('Error executing query: ' + response.error, 'error');
+        }
+    } catch (error) {
+        // Hide loading spinner and show error
+        document.getElementById('explorer-loading').classList.add('hidden');
+        document.getElementById('explorer-result-container').classList.remove('hidden');
+        document.getElementById('explorer-results-content').innerText = 'Error: ' + error.message;
+        
+        // Enable button
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
+        
+        showNotification('Error: ' + error.message, 'error');
+    }
+}
+
+// Helper function to run InfluxQL queries via the Grafana API
+async function runInfluxQuery(query) {
+    const url = document.getElementById('grafana_url').value;
+    let apiKey = document.getElementById('api_key').value;
+    
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+    }
+    
+    if (!url) {
+        return { success: false, error: 'Please enter Grafana URL' };
+    }
+    
+    if (!apiKey) {
+        return { success: false, error: 'Please enter API Key' };
+    }
+    
+    const response = await fetch('/settings/grafana/test-query', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: url,
+            api_key: apiKey,
+            query: query
+        })
+    });
+    
+    // Check content type of response
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+        // Parse as JSON if content type is JSON
+        return await response.json();
+    } else {
+        // Handle non-JSON response (HTML, text, etc.)
+        const responseText = await response.text();
+        return {
+            success: false,
+            error: 'Server returned non-JSON response',
+            html_response: responseText,
+            status: response.status
+        };
     }
 }
 </script>
