@@ -210,6 +210,23 @@
                                         <p class="mt-1 text-sm text-gray-500">Enter a Grafana dashboard URL or snapshot URL to explore its panels</p>
                                     </div>
                                     
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Panel JSON (optional)</label>
+                                        <textarea 
+                                            id="panel_json" 
+                                            rows="5" 
+                                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-xs"
+                                            placeholder="Paste Grafana panel JSON here to extract working queries"></textarea>
+                                        <div class="flex justify-end mt-2">
+                                            <button 
+                                                type="button" 
+                                                onclick="parsePanelJson()"
+                                                class="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50">
+                                                <i class="fas fa-code mr-1"></i> Extract Queries
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="flex justify-end space-x-2">
                                         <button type="button"
                                                 onclick="getSnapshotInfo()"
@@ -2331,6 +2348,159 @@ function viewPanelQuery(panelId, panelTitle) {
         showNotification(`Loaded query for panel: ${panelTitle}. Scroll down to see it.`, 'success');
     } else {
         showNotification(`Could not extract query for panel: ${panelTitle}`, 'error');
+    }
+}
+
+// Extract working queries from panel JSON
+function extractQueriesFromPanel(panelJson) {
+    try {
+        // Parse panel if it's a string
+        const panel = typeof panelJson === 'string' ? JSON.parse(panelJson) : panelJson;
+        
+        console.log("Extracting queries from panel:", panel.title || "Untitled Panel");
+        
+        // Check if panel has targets
+        if (!panel.targets || panel.targets.length === 0) {
+            return ["// No queries found in this panel"];
+        }
+        
+        // Process each target to create working queries
+        const queries = panel.targets.map((target, index) => {
+            // Get query details
+            let measurement = target.measurement || 'unknown';
+            let rawQuery = target.rawQuery === true;
+            let queryText = target.query || '';
+            
+            // Skip empty queries
+            if (!queryText && !measurement) {
+                return null;
+            }
+            
+            // Process raw query if available
+            if (rawQuery && queryText) {
+                // Replace Grafana variables with actual values
+                queryText = queryText
+                    .replace(/\$timeFilter/g, 'time > now() - 1h')
+                    .replace(/\$aggregation/g, '10')  // Using 10s aggregation as default
+                    .replace(/\$request/g, '.*')      // Match all requests
+                    .replace(/\[\[aggregation\]\]/g, '10'); // Replace [[aggregation]] with 10s
+                
+                return `-- Target ${target.refId || index + 1}: ${target.alias || 'Unnamed'}\n${queryText}`;
+            }
+            
+            // Build query from components if no raw query
+            let query = `SELECT `;
+            
+            // Build select clause
+            if (target.select && target.select.length > 0) {
+                const selects = target.select.map(selectGroup => {
+                    return selectGroup.map(select => {
+                        if (select.type === 'field') return `"${select.params[0]}"`;
+                        if (select.type === 'mean') return 'mean()';
+                        if (select.type === 'count') return 'count()';
+                        if (select.type === 'last') return 'last()';
+                        return select.type + '()';
+                    }).join(' ');
+                }).join(', ');
+                
+                query += selects;
+            } else {
+                query += '*';
+            }
+            
+            // Add measurement
+            query += ` FROM "${measurement}"`;
+            
+            // Add where clause
+            query += ` WHERE time > now() - 1h`;
+            
+            // Add tags if available
+            if (target.tags && target.tags.length > 0) {
+                target.tags.forEach(tag => {
+                    const value = tag.value.replace(/\/\^|\$\//g, '');
+                    query += ` AND "${tag.key}" = '${value}'`;
+                });
+            }
+            
+            // Add group by if available
+            if (target.groupBy && target.groupBy.length > 0) {
+                const groupBys = target.groupBy
+                    .filter(gb => gb.type !== 'fill') // Handle fill separately
+                    .map(gb => {
+                        if (gb.type === 'time') {
+                            return `time(${gb.params[0].replace('$__interval', '10s')})`;
+                        }
+                        return `"${gb.params[0]}"`;
+                    });
+                
+                if (groupBys.length > 0) {
+                    query += ` GROUP BY ${groupBys.join(', ')}`;
+                }
+                
+                // Add fill if present
+                const fillGroup = target.groupBy.find(gb => gb.type === 'fill');
+                if (fillGroup) {
+                    query += ` fill(${fillGroup.params[0]})`;
+                }
+            }
+            
+            // Add limit
+            query += ' LIMIT 100';
+            
+            return `-- Target ${target.refId || index + 1}: ${target.alias || 'Unnamed'}\n${query}`;
+        }).filter(q => q !== null);
+        
+        // Return working queries with a header
+        return [`-- Queries from panel: ${panel.title || "Untitled Panel"} (ID: ${panel.id || "unknown"})`]
+            .concat(queries);
+    } catch (error) {
+        console.error("Error extracting queries from panel:", error);
+        return [`-- Error extracting queries: ${error.message}`, 
+                "SELECT * FROM \"requestsRaw\" WHERE time > now() - 1h LIMIT 100"];
+    }
+}
+
+// Parse Grafana panel JSON and extract working queries
+function parsePanelJson() {
+    const jsonInput = document.getElementById('panel_json');
+    const jsonText = jsonInput.value.trim();
+    
+    if (!jsonText) {
+        showNotification('Please enter panel JSON', 'error');
+        return;
+    }
+    
+    try {
+        // Parse the JSON
+        const panelData = JSON.parse(jsonText);
+        console.log("Parsed panel data:", panelData);
+        
+        // Extract working queries
+        const queries = extractQueriesFromPanel(panelData);
+        
+        if (queries && queries.length > 0) {
+            // Join the queries with line breaks
+            const queryText = queries.join('\n\n');
+            
+            // Set the query in the textarea
+            document.getElementById('test_query').value = queryText;
+            
+            // Scroll to the query textarea
+            document.getElementById('test_query').scrollIntoView({ behavior: 'smooth' });
+            
+            // Flash the textarea to draw attention to it
+            document.getElementById('test_query').classList.add('highlight-pulse');
+            setTimeout(() => {
+                document.getElementById('test_query').classList.remove('highlight-pulse');
+            }, 2000);
+            
+            showNotification('Successfully extracted ' + (queries.length - 1) + ' queries from panel', 'success');
+        } else {
+            showNotification('No queries found in the panel JSON', 'warning');
+        }
+    } catch (error) {
+        console.error("Error parsing panel JSON:", error);
+        showNotification('Error parsing panel JSON: ' + error.message, 'error');
     }
 }
 </script>
