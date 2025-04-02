@@ -1722,25 +1722,45 @@ async function getDashboardInfo() {
     let dashboardUid = '';
     
     try {
+        console.log("Parsing dashboard URL:", dashboardUrl);
+        
         if (dashboardUrl) {
-            // Parse the URL to extract the dashboard UID
-            const urlParts = dashboardUrl.split('/');
-            // URL format is typically /d/[uid]/[dashboard-name]
-            for (let i = 0; i < urlParts.length; i++) {
-                if (urlParts[i] === 'd' && i + 1 < urlParts.length) {
-                    dashboardUid = urlParts[i + 1];
-                    break;
+            // First try to directly extract from the URL using regex (common format: /d/[uid]/dashboard-name)
+            const dashboardRegex = /\/d\/([^/?&#]+)/;
+            const match = dashboardUrl.match(dashboardRegex);
+            
+            if (match && match[1]) {
+                dashboardUid = match[1];
+                console.log("Found dashboard UID using regex:", dashboardUid);
+            } else {
+                // Fallback to manual parsing
+                const urlParts = dashboardUrl.split('/');
+                console.log("URL parts:", urlParts);
+                
+                // URL format is typically /d/[uid]/[dashboard-name]
+                for (let i = 0; i < urlParts.length; i++) {
+                    if (urlParts[i] === 'd' && i + 1 < urlParts.length) {
+                        dashboardUid = urlParts[i + 1];
+                        // Remove any query parameters
+                        if (dashboardUid.includes('?')) {
+                            dashboardUid = dashboardUid.split('?')[0];
+                        }
+                        console.log("Found dashboard UID via parsing:", dashboardUid);
+                        break;
+                    }
                 }
             }
-        } else {
-            // Use a default UID for the NFT dashboard
-            dashboardUid = 'eeh0kvxjev0u8c';
-            showNotification('Using default dashboard UID: ' + dashboardUid, 'info');
         }
         
         if (!dashboardUid) {
-            showNotification('Could not extract dashboard UID from URL', 'error');
-            return;
+            // If no UID found in URL, ask user to input directly
+            dashboardUid = prompt("Could not extract dashboard UID from URL. Please enter the dashboard UID directly:", "eeh0kvxjev0u8c");
+            if (dashboardUid) {
+                console.log("User entered dashboard UID:", dashboardUid);
+            } else {
+                showNotification('No dashboard UID provided', 'error');
+                return;
+            }
         }
         
         // Show loading indicator
