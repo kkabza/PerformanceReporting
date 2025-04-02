@@ -272,6 +272,9 @@
     </main>
 </div>
 
+<!-- Notifications container -->
+<div id="notifications-container" class="fixed bottom-4 right-4 z-50 space-y-4"></div>
+
 <script>
 function switchTab(tabId) {
     // Hide all tabs
@@ -405,7 +408,7 @@ async function testGrafanaConnection() {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Testing...';
         
-        const response = await fetch('/api/grafana/test-connection', {
+        const response = await fetch('/settings/grafana/test-connection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -478,7 +481,7 @@ async function testGrafanaQuery() {
         button.disabled = true;
         button.classList.add('opacity-75', 'cursor-not-allowed');
         
-        const response = await fetch('/api/grafana/test-query', {
+        const response = await fetch('/settings/grafana/test-query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -666,6 +669,69 @@ async function testOpenAIConnection() {
         const resultsContent = document.getElementById('openaiResultsContent');
         resultsDiv.classList.remove('hidden');
         resultsContent.textContent = 'Error testing connection: ' + error.message;
+    }
+}
+
+// Show notification function
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notifications-container');
+    const id = 'notification-' + Date.now();
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = id;
+    notification.classList.add('rounded-lg', 'p-4', 'flex', 'items-center', 'justify-between', 'shadow-lg', 'transform', 'transition-all', 'duration-300', 'translate-y-0', 'opacity-0');
+    
+    // Set styles based on type
+    let icon = '';
+    if (type === 'success') {
+        notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
+        icon = '<i class="fas fa-check-circle text-green-500 mr-3"></i>';
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
+        icon = '<i class="fas fa-exclamation-circle text-red-500 mr-3"></i>';
+    } else if (type === 'warning') {
+        notification.classList.add('bg-yellow-100', 'border-l-4', 'border-yellow-500', 'text-yellow-700');
+        icon = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>';
+    } else {
+        notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
+        icon = '<i class="fas fa-info-circle text-blue-500 mr-3"></i>';
+    }
+    
+    // Create content
+    notification.innerHTML = `
+        <div class="flex items-center">
+            ${icon}
+            <span>${message}</span>
+        </div>
+        <button onclick="dismissNotification('${id}')" class="ml-4 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Add to container
+    container.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.replace('opacity-0', 'opacity-100');
+    }, 10);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        dismissNotification(id);
+    }, 5000);
+}
+
+// Dismiss notification function
+function dismissNotification(id) {
+    const notification = document.getElementById(id);
+    if (notification) {
+        notification.classList.replace('opacity-100', 'opacity-0');
+        notification.classList.add('translate-y-2');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
     }
 }
 </script>

@@ -18,6 +18,7 @@ def general():
 def preferences():
     return render_template('pages/settings/preferences.html')
 
+@settings_bp.route('/grafana/test-connection', methods=['POST'])
 @settings_bp.route('/api/grafana/test-connection', methods=['POST'])
 def test_grafana_connection():
     """Test the connection to Grafana."""
@@ -159,6 +160,7 @@ def test_grafana_connection():
             'error': f'Error connecting to Grafana: {str(e)}'
         })
 
+@settings_bp.route('/grafana/test-query', methods=['POST'])
 @settings_bp.route('/api/grafana/test-query', methods=['POST'])
 @login_required
 def test_grafana_query():
