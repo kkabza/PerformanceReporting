@@ -1058,7 +1058,7 @@ function exportPanelCsv() {
     // Show loading indicator
     showToast('Exporting CSV data...', 'info');
     
-    fetch('/grafana/export-csv', {
+    fetch('/settings/grafana/export-csv', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
