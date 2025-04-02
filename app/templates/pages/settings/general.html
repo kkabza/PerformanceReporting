@@ -134,28 +134,19 @@
                 <div class="p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-6">Grafana API Configuration</h3>
                     
-                    <!-- Grafana Sub-Tabs -->
-                    <div class="border-b border-gray-200 mb-6">
-                        <nav class="-mb-px flex space-x-6" aria-label="Grafana Tabs">
-                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm active" 
-                                    onclick="switchGrafanaTab('grafana-connection')" 
-                                    data-grafana-tab="grafana-connection">
-                                <i class="fas fa-plug mr-2"></i>
-                                Connection Settings
-                            </button>
-                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" 
-                                    onclick="switchGrafanaTab('grafana-query')" 
-                                    data-grafana-tab="grafana-query">
-                                <i class="fas fa-terminal mr-2"></i>
-                                Query Test
-                            </button>
-                            <button class="grafana-tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" 
-                                    onclick="switchGrafanaTab('grafana-explorer')" 
-                                    data-grafana-tab="grafana-explorer">
-                                <i class="fas fa-compass mr-2"></i>
-                                InfluxQL Explorer
-                            </button>
-                        </nav>
+                    <!-- Tabs for Grafana settings -->
+                    <div class="mb-5 border-b border-gray-200">
+                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                            <li class="mr-2">
+                                <a href="#" class="grafana-tab inline-block p-4 border-b-2 border-blue-600 rounded-t-lg active text-blue-600" data-tab="grafana-connection">Connection Settings</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" class="grafana-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="grafana-query">Test Query</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" class="grafana-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="chart-test">Chart Test</a>
+                            </li>
+                        </ul>
                     </div>
                     
                     <form class="space-y-8" id="grafanaForm">
@@ -477,520 +468,479 @@ SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > n
                                 <div id="grafanaResultsContent" class="border rounded p-4 bg-gray-50 font-mono text-sm overflow-auto max-h-96"></div>
                             </div>
                         </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Azure OpenAI Settings -->
-            <div id="azure-openai" class="tab-content hidden">
-                <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-6">Azure OpenAI Configuration</h3>
-                    <form class="space-y-6" id="openaiForm">
-                        <div class="grid grid-cols-1 gap-6">
+                        
+                        <!-- Chart Test Tab -->
+                        <div id="chart-test" class="grafana-tab-content hidden">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Endpoint</label>
-                                <input type="text" 
-                                       id="openai_endpoint"
-                                       name="openai_endpoint"
-                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                       placeholder="https://your-resource.openai.azure.com/">
-                                <p class="mt-1 text-sm text-gray-500">Your Azure OpenAI service endpoint URL</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-                                <input type="password" 
-                                       id="openai_api_key"
-                                       name="openai_api_key"
-                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                       placeholder="Enter your API key">
-                                <p class="mt-1 text-sm text-gray-500">Your Azure OpenAI API key</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Deployment Name</label>
-                                <input type="text" 
-                                       id="openai_deployment"
-                                       name="openai_deployment"
-                                       class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-white hover:border-gray-500 transition-all duration-200"
-                                       placeholder="Enter deployment name (e.g., gpt-35-turbo)">
-                                <p class="mt-1 text-sm text-gray-500">The name of your model deployment</p>
+                                <h4 class="text-md font-medium text-gray-800 mb-4">Chart Testing</h4>
+                                
+                                <!-- Data Input Options -->
+                                <div class="mb-6">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-3">Data Source</h5>
+                                    
+                                    <!-- Tab navigation for data input -->
+                                    <div class="border-b border-gray-200">
+                                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                                            <li class="mr-2">
+                                                <a href="#" class="chart-input-tab inline-block p-3 border-b-2 border-blue-600 rounded-t-lg active text-blue-600" data-tab="csv-upload">Upload CSV</a>
+                                            </li>
+                                            <li class="mr-2">
+                                                <a href="#" class="chart-input-tab inline-block p-3 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="paste-data">Paste Data</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- CSV Upload Section -->
+                                    <div id="csv-upload" class="chart-input-content py-4">
+                                        <div class="flex items-center justify-center w-full">
+                                            <label for="csv-file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 border-gray-300">
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <i class="fas fa-file-csv text-2xl text-gray-500 mb-2"></i>
+                                                    <p class="mb-2 text-sm text-gray-500">
+                                                        <span class="font-semibold">Click to upload</span> or drag and drop
+                                                    </p>
+                                                    <p class="text-xs text-gray-500">CSV files only</p>
+                                                </div>
+                                                <input id="csv-file-upload" type="file" class="hidden" accept=".csv" />
+                                            </label>
+                                        </div>
+                                        <div id="csv-filename" class="mt-2 text-sm text-gray-500 text-center"></div>
+                                    </div>
+                                    
+                                    <!-- Paste Data Section -->
+                                    <div id="paste-data" class="chart-input-content py-4 hidden">
+                                        <textarea 
+                                            id="chart-data-input" 
+                                            placeholder="Paste CSV data or table data here..."
+                                            class="w-full h-32 p-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        ></textarea>
+                                        <p class="mt-1 text-xs text-gray-500">
+                                            Format: First column should be time/date, subsequent columns will be plotted as lines.
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Chart Rendering Button -->
+                                    <div class="mt-4 flex justify-end">
+                                        <button type="button"
+                                                onclick="renderChart()"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-chart-line mr-2"></i>
+                                            Generate Chart
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart Configuration -->
+                                <div class="mb-6">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-3">Chart Configuration</h5>
+                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                                            <input type="text" 
+                                                  id="chart-title" 
+                                                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                  placeholder="Chart Title">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">X-Axis Label</label>
+                                            <input type="text" 
+                                                  id="x-axis-label" 
+                                                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                  placeholder="Time">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Y-Axis Label</label>
+                                            <input type="text" 
+                                                  id="y-axis-label" 
+                                                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                  placeholder="Value">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart Display Area -->
+                                <div id="chart-container" class="relative bg-white p-4 border border-gray-200 rounded-lg shadow-sm hidden">
+                                    <div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 hidden">
+                                        <div class="text-center">
+                                            <i class="fas fa-spinner fa-spin text-blue-500 text-2xl mb-2"></i>
+                                            <p class="text-sm text-gray-600">Generating chart...</p>
+                                        </div>
+                                    </div>
+                                    <div id="chart-error" class="text-center text-red-500 hidden">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        <span id="chart-error-message">Error rendering chart</span>
+                                    </div>
+                                    <div class="h-80">
+                                        <canvas id="flowbiteChart"></canvas>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex justify-end">
-                            <button type="button"
-                                    onclick="testOpenAIConnection()"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <i class="fas fa-plug mr-2"></i>
-                                Test Connection
-                            </button>
-                        </div>
-                        <!-- OpenAI Connection Results -->
-                        <div id="openaiResults" class="mt-4 hidden">
-                            <h4 class="text-md font-medium text-gray-800 mb-2">Connection Results</h4>
-                            <div class="bg-gray-100 rounded-md p-4">
-                                <pre id="openaiResultsContent" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Save Button -->
-            <div class="px-6 py-4 bg-gray-50 rounded-b-lg">
-                <div class="flex justify-end">
-                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Save Changes
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
-<!-- Notifications container -->
-<div id="notifications-container" class="fixed bottom-4 right-4 z-50 space-y-4"></div>
-
 <script>
-function switchTab(tabId) {
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-    });
-    
-    // Remove active class from all buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('border-blue-500', 'text-blue-600');
-        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-    });
-    
-    // Show selected tab
-    document.getElementById(tabId).classList.remove('hidden');
-    
-    // Add active class to selected button
-    const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
-    activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-    activeButton.classList.add('border-blue-500', 'text-blue-600');
-}
-
-async function testDevOpsConnection() {
-    const orgName = document.getElementById('devops_org_url').value;
-    const pat = document.getElementById('devops_pat').value;
-    
-    if (!orgName || !pat) {
-        alert('Please enter both Organization name and PAT');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/settings/devops/test-connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                organization: orgName,
-                pat: pat
-            })
-        });
-
-        const data = await response.json();
-        const resultsDiv = document.getElementById('devopsResults');
-        const resultsContent = document.getElementById('devopsResultsContent');
-        
-        resultsDiv.classList.remove('hidden');
-        if (data.success) {
-            resultsContent.textContent = 'Connection successful! Azure DevOps organization is accessible.';
-        } else {
-            resultsContent.textContent = 'Error: ' + data.error;
-        }
-    } catch (error) {
-        const resultsDiv = document.getElementById('devopsResults');
-        const resultsContent = document.getElementById('devopsResultsContent');
-        resultsDiv.classList.remove('hidden');
-        resultsContent.textContent = 'Error testing connection: ' + error.message;
-    }
-}
-
-async function testAppInsightsConnection() {
-    const connectionString = document.getElementById('app_insights_connection').value;
-    
-    if (!connectionString) {
-        alert('Please enter Application Insights connection string');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/settings/appinsights/test-connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                connection_string: connectionString
-            })
-        });
-
-        const data = await response.json();
-        const resultsDiv = document.getElementById('appInsightsResults');
-        const resultsContent = document.getElementById('appInsightsResultsContent');
-        
-        resultsDiv.classList.remove('hidden');
-        if (data.success) {
-            resultsContent.textContent = 'Connection successful! Application Insights is properly configured.';
-        } else {
-            resultsContent.textContent = 'Error: ' + data.error;
-        }
-    } catch (error) {
-        const resultsDiv = document.getElementById('appInsightsResults');
-        const resultsContent = document.getElementById('appInsightsResultsContent');
-        resultsDiv.classList.remove('hidden');
-        resultsContent.textContent = 'Error testing connection: ' + error.message;
-    }
-}
-
-// Initialize active tab
+// Tab switching functionality
 document.addEventListener('DOMContentLoaded', function() {
-    switchTab('devops');
+    // Add click handlers for Grafana tabs
+    document.querySelectorAll('.grafana-tab').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            switchGrafanaTab(tabId);
+        });
+    });
     
-    // Add event listener for database selector changes
-    const dbSelector = document.getElementById('explorer-database');
-    if (dbSelector) {
-        dbSelector.addEventListener('change', loadDatabaseStructure);
+    // Add click handlers for chart input tabs
+    document.querySelectorAll('.chart-input-tab').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            switchChartInputTab(tabId);
+        });
+    });
+    
+    // Handle CSV file upload
+    const fileUpload = document.getElementById('csv-file-upload');
+    if (fileUpload) {
+        fileUpload.addEventListener('change', handleFileUpload);
     }
 });
 
-async function testGrafanaConnection() {
-    console.log("Test Grafana connection called");
-    const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
+// Switch between Grafana tabs
+function switchGrafanaTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.grafana-tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
     
-    // If empty, try to use environment variable
-    if (!apiKey || apiKey.trim() === '') {
-        apiKey = "{{ grafana_api_key|default('') }}";
-        console.log("Using API key from environment variables");
+    // Remove active class from all tabs
+    document.querySelectorAll('.grafana-tab').forEach(tab => {
+        tab.classList.remove('active', 'border-blue-600', 'text-blue-600');
+        tab.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
     }
     
-    if (!url) {
-        showNotification('Please enter Grafana URL', 'error');
-        return;
-    }
-    
-    if (!apiKey) {
-        showNotification('Please enter API Key', 'error');
-        return;
-    }
-    
-    console.log("URL:", url);
-    console.log("API Key length:", apiKey.length);
-    
-    try {
-        // Show loading state
-        const saveButton = document.querySelector('button[type="submit"]');
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Testing...';
-        
-        const response = await fetch('/settings/grafana/test-connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey
-            })
-        });
-
-        const data = await response.json();
-        
-        // Reset button state
-        saveButton.disabled = false;
-        saveButton.innerHTML = 'Save Changes';
-        
-        if (data.success) {
-            showNotification(`Connection successful! Grafana version: ${data.version || 'unknown'}`, 'success');
-        } else {
-            let errorMessage = `Connection failed: ${data.error}`;
-            
-            // Create error details element if there's a preview
-            if (data.response_preview) {
-                // Add error details to the page
-                const resultsDiv = document.getElementById('queryResults');
-                const resultsContent = document.getElementById('queryResultsContent');
-                
-                resultsDiv.classList.remove('hidden');
-                resultsContent.textContent = `Error details:\n${data.response_preview}`;
-                
-                errorMessage += '\nSee details below for more information.';
-            }
-            
-            showNotification(errorMessage, 'error');
-        }
-    } catch (error) {
-        // Reset button state
-        const saveButton = document.querySelector('button[type="submit"]');
-        saveButton.disabled = false;
-        saveButton.innerHTML = 'Save Changes';
-        
-        showNotification(`Error testing connection: ${error.message}`, 'error');
+    // Add active class to selected tab button
+    const activeTab = document.querySelector(`.grafana-tab[data-tab="${tabId}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active', 'border-blue-600', 'text-blue-600');
+        activeTab.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
     }
 }
 
-async function testGrafanaQuery() {
-    const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
-    const query = document.getElementById('test_query').value;
+// Switch between chart input tabs
+function switchChartInputTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.chart-input-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
     
-    // If empty, try to use environment variable
-    if (!apiKey || apiKey.trim() === '') {
-        apiKey = "{{ grafana_api_key|default('') }}";
-        console.log("Using API key from environment variables");
+    // Remove active class from all tabs
+    document.querySelectorAll('.chart-input-tab').forEach(tab => {
+        tab.classList.remove('active', 'border-blue-600', 'text-blue-600');
+        tab.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
     }
     
-    if (!query) {
-        showNotification('Please enter a query', 'warning');
+    // Add active class to selected tab button
+    const activeTab = document.querySelector(`.chart-input-tab[data-tab="${tabId}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active', 'border-blue-600', 'text-blue-600');
+        activeTab.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+    }
+}
+
+// Handle file upload
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Display filename
+    const filenameElement = document.getElementById('csv-filename');
+    if (filenameElement) {
+        filenameElement.textContent = file.name;
+    }
+    
+    // Read file content
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const csvData = e.target.result;
+        // Store CSV data for chart rendering
+        window.csvData = csvData;
+    };
+    reader.readAsText(file);
+}
+
+// Render chart from CSV data or pasted data
+function renderChart() {
+    // Get data source
+    let data;
+    const csvUploadTab = document.getElementById('csv-upload');
+    const pasteDataTab = document.getElementById('paste-data');
+    
+    if (csvUploadTab && !csvUploadTab.classList.contains('hidden')) {
+        // Use uploaded CSV file
+        if (!window.csvData) {
+            showToast('Please upload a CSV file first', 'error');
+            return;
+        }
+        data = window.csvData;
+    } else if (pasteDataTab && !pasteDataTab.classList.contains('hidden')) {
+        // Use pasted data
+        const textInput = document.getElementById('chart-data-input');
+        if (!textInput || !textInput.value.trim()) {
+            showToast('Please paste data first', 'error');
+            return;
+        }
+        data = textInput.value;
+    } else {
+        showToast('Please provide data for the chart', 'error');
         return;
     }
     
+    // Show chart container and loading indicator
+    const chartContainer = document.getElementById('chart-container');
+    const loadingIndicator = document.getElementById('chart-loading');
+    const errorMessage = document.getElementById('chart-error');
+    
+    if (chartContainer) chartContainer.classList.remove('hidden');
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    if (errorMessage) errorMessage.classList.add('hidden');
+    
+    // Parse CSV data
     try {
-        // Show loading spinner
-        document.getElementById('grafanaResults').classList.remove('hidden');
-        document.getElementById('grafanaLoading').classList.remove('hidden');
-        document.getElementById('grafanaResultContainer').classList.add('hidden');
+        const parsedData = parseCSVData(data);
         
-        // Disable button during request
-        const button = document.getElementById('testGrafanaQueryBtn');
-        button.disabled = true;
-        button.classList.add('opacity-75', 'cursor-not-allowed');
+        // Get chart configuration
+        const chartTitle = document.getElementById('chart-title').value || 'Chart';
+        const xAxisLabel = document.getElementById('x-axis-label').value || 'Time';
+        const yAxisLabel = document.getElementById('y-axis-label').value || 'Value';
         
-        const response = await fetch('/settings/grafana/test-query', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey,
-                query: query
-            })
-        });
+        // Create the chart
+        createChart(parsedData, chartTitle, xAxisLabel, yAxisLabel);
         
-        // Check content type of response
-        const contentType = response.headers.get('content-type');
-        let data;
+        // Hide loading indicator
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    } catch (error) {
+        console.error('Error creating chart:', error);
         
-        if (contentType && contentType.includes('application/json')) {
-            // Parse as JSON if content type is JSON
-            data = await response.json();
-        } else {
-            // Handle non-JSON response (HTML, text, etc.)
-            const responseText = await response.text();
-            data = {
-                success: false,
-                error: 'Server returned non-JSON response',
-                html_response: responseText,
-                status: response.status
-            };
+        // Show error message
+        if (errorMessage) {
+            errorMessage.classList.remove('hidden');
+            const errorMessageText = document.getElementById('chart-error-message');
+            if (errorMessageText) {
+                errorMessageText.textContent = error.message || 'Error rendering chart';
+            }
         }
         
-        // Hide loading spinner
-        document.getElementById('grafanaLoading').classList.add('hidden');
+        // Hide loading indicator
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
         
-        // Enable button
-        button.disabled = false;
-        button.classList.remove('opacity-75', 'cursor-not-allowed');
+        showToast('Error creating chart: ' + (error.message || 'Unknown error'), 'error');
+    }
+}
+
+// Parse CSV data into chart-friendly format
+function parseCSVData(csvString) {
+    // Split into lines and remove any empty lines
+    const lines = csvString.split('\n').filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+        throw new Error('Not enough data to create a chart');
+    }
+    
+    // Parse header row to get column names
+    const headers = parseCSVLine(lines[0]);
+    if (headers.length < 2) {
+        throw new Error('At least two columns are required (time and value)');
+    }
+    
+    // Parse data rows
+    const datasets = [];
+    for (let i = 1; i < headers.length; i++) {
+        datasets.push({
+            label: headers[i],
+            data: [],
+            borderColor: getRandomColor(),
+            tension: 0.3,
+            fill: false
+        });
+    }
+    
+    // Parse each data row
+    const labels = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length < headers.length) continue;
         
-        if (data.success) {
-            // Format the results
-            let formattedResults = '';
-            
-            // Check if the response has the expected structure
-            if (data.results && data.results.results) {
-                // Extract the frames data
-                const frames = data.results.results.A.frames;
-                if (frames && frames.length > 0) {
-                    // Generate a formatted table
-                    formattedResults = formatGrafanaResults(frames);
-                } else {
-                    formattedResults = 'Query executed successfully, but no data was returned.';
-                }
+        // First column is the x-axis (usually time)
+        labels.push(values[0]);
+        
+        // Remaining columns are data series
+        for (let j = 1; j < values.length && j < headers.length; j++) {
+            const value = parseFloat(values[j]);
+            datasets[j-1].data.push(isNaN(value) ? 0 : value);
+        }
+    }
+    
+    return {
+        labels: labels,
+        datasets: datasets
+    };
+}
+
+// Parse a single CSV line, handling quotes and commas properly
+function parseCSVLine(line) {
+    const result = [];
+    let currentValue = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"' && !inQuotes) {
+            inQuotes = true;
+        } else if (char === '"' && inQuotes) {
+            // Check for escaped quote
+            if (i + 1 < line.length && line[i + 1] === '"') {
+                currentValue += '"';
+                i++; // Skip the next quote
             } else {
-                formattedResults = 'Query executed successfully, but returned an unexpected format.';
+                inQuotes = false;
             }
-            
-            // Update the results container
-            document.getElementById('grafanaResultContainer').classList.remove('hidden');
-            document.getElementById('grafanaResultsContent').innerHTML = formattedResults;
-            
-            showNotification('Query executed successfully', 'success');
+        } else if (char === ',' && !inQuotes) {
+            result.push(currentValue);
+            currentValue = '';
         } else {
-            // Check if there's an HTML response
-            if (data.html_response) {
-                // Display the HTML response in the results container
-                document.getElementById('grafanaResultContainer').classList.remove('hidden');
-                document.getElementById('grafanaResultsContent').innerHTML = 
-                    '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700 font-mono overflow-auto max-h-96">' +
-                    '<h3 class="font-bold mb-2">HTML Response (Status ' + data.status + '): This likely means:</h3>' +
-                    '<ul class="list-disc ml-5 mb-3">' +
-                    '<li>Redirect to a login page</li>' + 
-                    '<li>Invalid URL or API endpoint</li>' +
-                    '<li>Server error returned as HTML</li>' +
-                    '</ul>' +
-                    '<pre class="text-xs">' + escapeHtml(data.html_response.substring(0, 1000)) + '...</pre>' +
-                    '</div>';
-            } else {
-                // Format error with details about the query that was sent
-                let errorHtml = '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700">';
-                
-                // Add error message
-                errorHtml += '<h3 class="font-bold mb-2">Error:</h3>';
-                errorHtml += '<p class="mb-3">' + escapeHtml(data.error) + '</p>';
-                
-                // Add query information
-                if (data.query_sent) {
-                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Query Sent:</h3>';
-                    errorHtml += '<pre class="bg-gray-800 text-white p-2 rounded mb-3 overflow-auto">' + escapeHtml(data.query_sent) + '</pre>';
-                }
-                
-                // Add suggestions if available
-                if (data.suggestion) {
-                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Suggestion:</h3>';
-                    errorHtml += '<div class="bg-blue-50 p-3 rounded border border-blue-200 text-blue-700">' + 
-                                  '<i class="fas fa-lightbulb text-yellow-500 mr-2"></i> ' + 
-                                  escapeHtml(data.suggestion) + 
-                                 '</div>';
-                }
-                
-                // Add details if available
-                if (data.details) {
-                    errorHtml += '<h3 class="font-bold mb-2 mt-4">Error Details:</h3>';
-                    errorHtml += '<pre class="bg-gray-100 p-2 rounded text-xs overflow-auto">' + escapeHtml(data.details) + '</pre>';
-                }
-                
-                errorHtml += '</div>';
-                
-                // Show the error details in the result container
-                document.getElementById('grafanaResultContainer').classList.remove('hidden');
-                document.getElementById('grafanaResultsContent').innerHTML = errorHtml;
-            }
-            
-            showNotification('Error executing query: ' + data.error, 'error');
+            currentValue += char;
         }
-        
-    } catch (error) {
-        // Hide loading spinner and show error
-        document.getElementById('grafanaLoading').classList.add('hidden');
-        document.getElementById('grafanaResultContainer').classList.remove('hidden');
-        document.getElementById('grafanaResultsContent').innerText = 'Error parsing response: ' + error.message;
-        
-        // Enable button
-        const button = document.getElementById('testGrafanaQueryBtn');
-        button.disabled = false;
-        button.classList.remove('opacity-75', 'cursor-not-allowed');
-        
-        showNotification('Error: ' + error.message, 'error');
+    }
+    
+    // Add the last value
+    result.push(currentValue);
+    
+    return result;
+}
+
+// Generate a random color for chart lines
+function getRandomColor() {
+    const colors = [
+        '#4F46E5', // indigo-600
+        '#0891B2', // cyan-600
+        '#059669', // emerald-600
+        '#D97706', // amber-600
+        '#DC2626', // red-600
+        '#7C3AED', // violet-600
+        '#2563EB', // blue-600
+        '#C026D3', // fuchsia-600
+        '#EA580C', // orange-600
+        '#4338CA'  // indigo-700
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Create and render the chart using Chart.js (compatible with Flowbite)
+function createChart(data, title, xAxisLabel, yAxisLabel) {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        // If Chart.js is not loaded, load it dynamically
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        script.onload = () => {
+            // Create chart once Chart.js is loaded
+            initializeChart(data, title, xAxisLabel, yAxisLabel);
+        };
+        document.head.appendChild(script);
+    } else {
+        // Chart.js is already loaded
+        initializeChart(data, title, xAxisLabel, yAxisLabel);
     }
 }
 
-// Helper function to safely escape HTML content
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-// Helper function to format Grafana results as a table
-function formatGrafanaResults(frames) {
-    let html = '<div class="overflow-x-auto">';
+// Initialize chart once Chart.js is available
+function initializeChart(data, title, xAxisLabel, yAxisLabel) {
+    const ctx = document.getElementById('flowbiteChart');
     
-    for (const frame of frames) {
-        html += '<div class="mb-6">';
-        
-        // Add frame name if available
-        if (frame.name) {
-            html += `<h3 class="text-lg font-semibold mb-2">${frame.name}</h3>`;
-        }
-        
-        // Create table
-        html += '<table class="min-w-full bg-white border border-gray-300">';
-        
-        // Create table header
-        html += '<thead><tr class="bg-gray-100">';
-        if (frame.schema && frame.schema.fields) {
-            for (const field of frame.schema.fields) {
-                html += `<th class="border border-gray-300 px-4 py-2">${field.name}</th>`;
-            }
-        }
-        html += '</tr></thead>';
-        
-        // Create table body
-        html += '<tbody>';
-        if (frame.data && frame.data.values && frame.data.values.length > 0) {
-            // Calculate number of rows
-            const numRows = frame.data.values[0].length || 0;
-            
-            // Create rows
-            for (let i = 0; i < numRows; i++) {
-                html += '<tr>';
-                for (let j = 0; j < frame.data.values.length; j++) {
-                    const value = frame.data.values[j][i];
-                    html += `<td class="border border-gray-300 px-4 py-2">${value}</td>`;
+    // Destroy existing chart if any
+    if (window.myLineChart) {
+        window.myLineChart.destroy();
+    }
+    
+    // Create new chart
+    window.myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 6
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
                 }
-                html += '</tr>';
-            }
-        } else {
-            html += '<tr><td colspan="100%" class="px-4 py-2 text-center text-gray-500">No data available</td></tr>';
-        }
-        html += '</tbody></table></div>';
-    }
-    
-    html += '</div>';
-    return html;
-}
-
-async function testOpenAIConnection() {
-    const endpoint = document.getElementById('openai_endpoint').value;
-    const apiKey = document.getElementById('openai_api_key').value;
-    
-    if (!endpoint || !apiKey) {
-        alert('Please enter both Endpoint and API Key');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/settings/openai/test-connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                endpoint: endpoint,
-                api_key: apiKey
-            })
-        });
-
-        const data = await response.json();
-        const resultsDiv = document.getElementById('openaiResults');
-        const resultsContent = document.getElementById('openaiResultsContent');
-        
-        resultsDiv.classList.remove('hidden');
-        if (data.success) {
-            resultsContent.textContent = 'Connection successful! Azure OpenAI is properly configured.';
-        } else {
-            resultsContent.textContent = 'Error: ' + data.error;
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: xAxisLabel
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: yAxisLabel
+                    },
+                    beginAtZero: true
+                }
+            }
         }
-    } catch (error) {
-        const resultsDiv = document.getElementById('openaiResults');
-        const resultsContent = document.getElementById('openaiResultsContent');
-        resultsDiv.classList.remove('hidden');
-        resultsContent.textContent = 'Error testing connection: ' + error.message;
-    }
+    });
 }
 
-// Show notification function
-function showNotification(message, type = 'info') {
-    const container = document.getElementById('notifications-container');
+// Show notification
+function showToast(message, type = 'info') {
+    // Check if notifications-container exists, create if not
+    let container = document.getElementById('notifications-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notifications-container';
+        container.className = 'fixed bottom-4 right-4 z-50 space-y-4';
+        document.body.appendChild(container);
+    }
+    
     const id = 'notification-' + Date.now();
     
     // Create notification element
@@ -1049,1555 +999,6 @@ function dismissNotification(id) {
             notification.remove();
         }, 300);
     }
-}
-
-// Function to switch between Grafana tabs
-function switchGrafanaTab(tabId) {
-    // Hide all Grafana tabs
-    document.querySelectorAll('.grafana-tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-    });
-    
-    // Remove active class from all Grafana tab buttons
-    document.querySelectorAll('.grafana-tab-button').forEach(button => {
-        button.classList.remove('border-blue-500', 'text-blue-600');
-        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-    });
-    
-    // Show selected tab
-    document.getElementById(tabId).classList.remove('hidden');
-    
-    // Add active class to selected button
-    const activeButton = document.querySelector(`[data-grafana-tab="${tabId}"]`);
-    activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-    activeButton.classList.add('border-blue-500', 'text-blue-600');
-
-    // Load database structure if explorer tab was selected
-    if (tabId === 'grafana-explorer') {
-        loadDatabaseStructure();
-    }
-}
-
-// Load list of databases
-async function loadDatabases() {
-    showNotification('Loading databases...', 'info');
-    
-    try {
-        const response = await runInfluxQuery('SHOW DATABASES');
-        if (response.success) {
-            // Create database selector options
-            const dbSelector = document.getElementById('explorer-database');
-            dbSelector.innerHTML = ''; // Clear existing options
-            
-            // Extract database names from results
-            const frames = response.results.results.A.frames;
-            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
-                const databaseNames = frames[0].data.values[0];
-                databaseNames.forEach(dbName => {
-                    const option = document.createElement('option');
-                    option.value = dbName;
-                    option.textContent = dbName;
-                    if (dbName === 'mass_nft') {
-                        option.selected = true;
-                    }
-                    dbSelector.appendChild(option);
-                });
-            }
-            
-            // Trigger loading of database structure for selected DB
-            loadDatabaseStructure();
-            
-            showNotification('Databases loaded successfully', 'success');
-        } else {
-            showNotification('Failed to load databases: ' + response.error, 'error');
-        }
-    } catch (error) {
-        showNotification('Error loading databases: ' + error.message, 'error');
-    }
-}
-
-// Load database structure
-async function loadDatabaseStructure() {
-    const dbName = document.getElementById('explorer-database').value;
-    const treeContainer = document.getElementById('database-tree');
-    
-    // Show loading state
-    treeContainer.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-circle-notch fa-spin text-blue-500 mr-2"></i>
-            <span>Loading database structure...</span>
-        </div>
-    `;
-    
-    try {
-        // First get measurements in the database
-        const measurementsQuery = `SHOW MEASUREMENTS ON ${dbName}`;
-        const measurementsResponse = await runInfluxQuery(measurementsQuery);
-        
-        if (!measurementsResponse.success) {
-            treeContainer.innerHTML = `<div class="text-red-500">Error loading measurements: ${measurementsResponse.error}</div>`;
-            return;
-        }
-        
-        // Extract measurements from the response
-        const frames = measurementsResponse.results.results.A.frames;
-        let measurements = [];
-        
-        if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
-            // Extract measurements from the first column
-            measurements = frames[0].data.values[0] || [];
-        }
-        
-        // Build HTML for tree view
-        let treeHtml = '';
-        
-        // Database node
-        treeHtml += `
-            <div class="mb-3">
-                <div class="flex items-center font-medium">
-                    <i class="fas fa-database text-blue-500 mr-2"></i>
-                    <span>${dbName}</span>
-                </div>
-            </div>
-        `;
-        
-        // Measurements
-        if (measurements.length > 0) {
-            treeHtml += `<div class="ml-4 space-y-2">`;
-            
-            // Add each measurement
-            for (const measurement of measurements) {
-                treeHtml += `
-                    <div class="measurement-item">
-                        <div class="flex items-center cursor-pointer hover:text-blue-600" 
-                             onclick="loadMeasurementDetails('${dbName}', '${measurement}')" 
-                             data-measurement="${measurement}">
-                            <i class="fas fa-table text-green-500 mr-2"></i>
-                            <span>${measurement}</span>
-                        </div>
-                        <div class="measurement-details ml-4 hidden" id="details-${measurement}">
-                            <div class="flex items-center">
-                                <i class="fas fa-circle-notch fa-spin text-blue-300 mr-2"></i>
-                                <span class="text-xs">Loading details...</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            treeHtml += `</div>`;
-        } else {
-            treeHtml += `<div class="ml-4 text-gray-500">No measurements found</div>`;
-        }
-        
-        // Update the tree container
-        treeContainer.innerHTML = treeHtml;
-    } catch (error) {
-        treeContainer.innerHTML = `<div class="text-red-500">Error: ${error.message}</div>`;
-    }
-}
-
-// Load details for a specific measurement
-async function loadMeasurementDetails(dbName, measurementName) {
-    const detailsContainer = document.getElementById(`details-${measurementName}`);
-    
-    // Toggle visibility
-    if (!detailsContainer.classList.contains('hidden')) {
-        detailsContainer.classList.add('hidden');
-        return;
-    }
-    
-    detailsContainer.classList.remove('hidden');
-    
-    // Show loading state
-    detailsContainer.innerHTML = `
-        <div class="flex items-center py-1">
-            <i class="fas fa-circle-notch fa-spin text-blue-300 mr-2"></i>
-            <span class="text-xs">Loading details...</span>
-        </div>
-    `;
-    
-    try {
-        // Get field keys
-        const fieldKeysQuery = `SHOW FIELD KEYS ON ${dbName} FROM "${measurementName}"`;
-        const fieldKeysResponse = await runInfluxQuery(fieldKeysQuery);
-        
-        // Get tag keys
-        const tagKeysQuery = `SHOW TAG KEYS ON ${dbName} FROM "${measurementName}"`;
-        const tagKeysResponse = await runInfluxQuery(tagKeysQuery);
-        
-        // Build details HTML
-        let detailsHtml = '';
-        
-        // Add fields
-        if (fieldKeysResponse.success) {
-            const frames = fieldKeysResponse.results.results.A.frames;
-            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
-                detailsHtml += `
-                    <div class="my-1">
-                        <div class="flex items-center text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-hashtag text-yellow-500 mr-1"></i>
-                            <span>Fields</span>
-                        </div>
-                        <div class="ml-3 text-xs space-y-1">
-                `;
-                
-                // Get field names and types
-                const fieldNames = frames[0].data.values[0] || [];
-                const fieldTypes = frames[0].data.values[1] || [];
-                
-                for (let i = 0; i < fieldNames.length; i++) {
-                    const fieldName = fieldNames[i];
-                    const fieldType = fieldTypes[i];
-                    
-                    detailsHtml += `
-                        <div class="flex items-center">
-                            <span class="text-gray-700">${fieldName}</span>
-                            <span class="ml-1 text-gray-500">(${fieldType})</span>
-                        </div>
-                    `;
-                }
-                
-                detailsHtml += `
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Add tags
-        if (tagKeysResponse.success) {
-            const frames = tagKeysResponse.results.results.A.frames;
-            if (frames && frames.length > 0 && frames[0].data && frames[0].data.values) {
-                detailsHtml += `
-                    <div class="my-1">
-                        <div class="flex items-center text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-tag text-purple-500 mr-1"></i>
-                            <span>Tags</span>
-                        </div>
-                        <div class="ml-3 text-xs space-y-1">
-                `;
-                
-                // Get tag names
-                const tagNames = frames[0].data.values[0] || [];
-                
-                for (const tagName of tagNames) {
-                    detailsHtml += `
-                        <div class="flex items-center">
-                            <span class="text-gray-700">${tagName}</span>
-                        </div>
-                    `;
-                }
-                
-                detailsHtml += `
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Add quick query buttons
-        detailsHtml += `
-            <div class="mt-2 text-xs flex space-x-1">
-                <button 
-                    onclick="buildQueryForMeasurement('${dbName}', '${measurementName}')" 
-                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
-                    Query
-                </button>
-                <button 
-                    onclick="buildTagValuesQuery('${dbName}', '${measurementName}')" 
-                    class="px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors">
-                    Tag Values
-                </button>
-            </div>
-        `;
-        
-        // Update the details container
-        detailsContainer.innerHTML = detailsHtml;
-    } catch (error) {
-        detailsContainer.innerHTML = `<div class="text-xs text-red-500 py-1">Error: ${error.message}</div>`;
-    }
-}
-
-// Build a query for the specific measurement
-function buildQueryForMeasurement(dbName, measurementName) {
-    const query = `SELECT * FROM ${dbName}.autogen.${measurementName} LIMIT 50`;
-    document.getElementById('explorer-query').value = query;
-    
-    // Smooth scroll to the query editor
-    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
-}
-
-// Build a query to show tag values for the measurement
-function buildTagValuesQuery(dbName, measurementName) {
-    const query = `SHOW TAG VALUES ON ${dbName} FROM "${measurementName}" WITH KEY = "host"`;
-    document.getElementById('explorer-query').value = query;
-    
-    // Smooth scroll to the query editor
-    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
-}
-
-// Build a query based on button click
-function buildQuery(queryType) {
-    const dbName = document.getElementById('explorer-database').value;
-    let query = '';
-    
-    switch (queryType) {
-        case 'SHOW DATABASES':
-            query = 'SHOW DATABASES';
-            break;
-        case 'SHOW MEASUREMENTS':
-            query = `SHOW MEASUREMENTS ON ${dbName}`;
-            break;
-        case 'SHOW SERIES':
-            query = `SHOW SERIES ON ${dbName}`;
-            break;
-        case 'SHOW TAG KEYS':
-            query = `SHOW TAG KEYS ON ${dbName}`;
-            break;
-        case 'SHOW FIELD KEYS':
-            query = `SHOW FIELD KEYS ON ${dbName}`;
-            break;
-        case 'use-selected':
-            // Get selected measurement from the tree
-            const selectedElements = document.querySelectorAll('.measurement-item');
-            for (const element of selectedElements) {
-                const details = element.querySelector('.measurement-details');
-                if (details && !details.classList.contains('hidden')) {
-                    const measurementName = element.querySelector('[data-measurement]').getAttribute('data-measurement');
-                    query = `SELECT * FROM ${dbName}.autogen.${measurementName} WHERE time > now() - 24h LIMIT 50`;
-                    break;
-                }
-            }
-            if (!query) {
-                showNotification('Please select a measurement first', 'warning');
-                return;
-            }
-            break;
-    }
-    
-    // Set the query in the editor
-    document.getElementById('explorer-query').value = query;
-}
-
-// Function to run a query from the explorer
-function runExplorerQuery() {
-    // Show loading indicators
-    document.getElementById('explorer-results').classList.remove('hidden');
-    document.getElementById('explorer-loading').classList.remove('hidden');
-    document.getElementById('explorer-result-container').classList.add('hidden');
-    
-    // Clear previous results
-    document.getElementById('explorer-results-content').innerHTML = '';
-    
-    // Call the executeQuery function
-    executeQuery();
-}
-
-// Function to execute the query with loading state
-async function executeQuery() {
-    const queryInput = document.getElementById('explorer-query');
-    const query = queryInput.value.trim();
-    const resultsContainer = document.getElementById('query-results');
-    const runButton = document.getElementById('run-query-btn');
-    
-    if (!query) {
-        showNotification('Please enter a query', 'error');
-        return;
-    }
-    
-    // Show loading state
-    runButton.disabled = true;
-    runButton.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-1"></i> Running...';
-    
-    // Clear previous results and show loading
-    resultsContainer.innerHTML = `
-        <div class="flex items-center justify-center p-6 text-blue-600">
-            <i class="fas fa-circle-notch fa-spin mr-2"></i>
-            <span>Executing query...</span>
-        </div>
-    `;
-    
-    try {
-        // Set a timeout to prevent UI from freezing too long
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Query timed out after 20 seconds')), 20000);
-        });
-        
-        // Race between the query and the timeout
-        const results = await Promise.race([
-            runInfluxQuery(query),
-            timeoutPromise
-        ]);
-        
-        // Display results
-        displayQueryResults(results);
-    } catch (error) {
-        // Handle any errors
-        resultsContainer.innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        console.error('Query execution error:', error);
-    } finally {
-        // Reset button state
-        runButton.disabled = false;
-        runButton.innerHTML = '<i class="fas fa-play mr-1"></i> Run Query';
-    }
-}
-
-// Helper function to run InfluxQL queries via the Grafana API
-async function runInfluxQuery(query) {
-    const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
-    const database = document.getElementById('explorer-database').value;
-    
-    // If empty, try to use environment variable
-    if (!apiKey || apiKey.trim() === '') {
-        apiKey = "{{ grafana_api_key|default('') }}";
-    }
-    
-    if (!url) {
-        return { success: false, error: 'Please enter Grafana URL' };
-    }
-    
-    if (!apiKey) {
-        return { success: false, error: 'Please enter API Key' };
-    }
-    
-    try {
-        // Limit query complexity/length to prevent freezing
-        if (query.length > 1000) {
-            return { 
-                success: false, 
-                error: 'Query is too long. Please simplify your query (max 1000 characters).' 
-            };
-        }
-        
-        // Use the simplest query format for testing
-        let queryToUse = query;
-        
-        // Try to simplify the query if it's a SELECT
-        if (query.toUpperCase().startsWith('SELECT')) {
-            // Add LIMIT if not present
-            if (!query.toUpperCase().includes('LIMIT')) {
-                queryToUse = `${query} LIMIT 100`;
-            }
-        }
-
-        console.log("Running query:", queryToUse);
-        
-        // Use Grafana's proxy API endpoint for direct InfluxDB access
-        const grafanaProxyUrl = `${url}/api/datasources/proxy/1/query`;
-        
-        // Format the query parameters as InfluxDB expects them
-        const queryParams = new URLSearchParams({
-            db: database,
-            q: queryToUse,
-            epoch: 'ms'  // Return time values in milliseconds
-        });
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        
-        const response = await fetch(`${grafanaProxyUrl}?${queryParams.toString()}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        // Check status code first
-        if (!response.ok) {
-            const responseText = await response.text();
-            console.error("API Error:", response.status, responseText);
-            
-            return {
-                success: false,
-                error: `API Error (${response.status}): ${responseText.substring(0, 200)}`,
-                status: response.status
-            };
-        }
-        
-        // Check content type of response
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            // Parse as JSON if content type is JSON
-            const responseData = await response.json();
-            
-            // Check for error in the response
-            if (responseData.error) {
-                return {
-                    success: false,
-                    error: `InfluxDB Error: ${responseData.error}`
-                };
-            }
-            
-            // Format response to match our expected structure
-            return {
-                success: true,
-                results: responseData
-            };
-        } else {
-            // Handle non-JSON response (HTML, text, etc.)
-            const responseText = await response.text();
-            return {
-                success: false,
-                error: 'Server returned non-JSON response',
-                html_response: responseText,
-                status: response.status
-            };
-        }
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            return {
-                success: false,
-                error: 'Query timed out after 15 seconds'
-            };
-        }
-        
-        console.error("Error executing query:", error);
-        return {
-            success: false,
-            error: `Error executing query: ${error.message}`
-        };
-    }
-}
-
-// Display query results
-function displayQueryResults(results) {
-    const resultsContainer = document.getElementById('query-results');
-    
-    // Clear previous results
-    resultsContainer.innerHTML = '';
-    
-    if (!results.success) {
-        // Display error
-        resultsContainer.innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error:</strong> ${results.error || 'Unknown error'}
-                        </p>
-                        ${results.html_response ? 
-                            `<pre class="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">${escapeHtml(results.html_response.substring(0, 500))}${results.html_response.length > 500 ? '...' : ''}</pre>` 
-                            : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    // Handle successful results
-    try {
-        // Create a title element
-        const titleEl = document.createElement('h5');
-        titleEl.className = 'font-medium text-gray-700 mb-3';
-        titleEl.textContent = 'Query Results';
-        resultsContainer.appendChild(titleEl);
-        
-        // Format for the proxy API results (different from the datasource query API)
-        if (results.results && results.results.results) {
-            // Create a table for the results
-            const table = document.createElement('table');
-            table.className = 'min-w-full divide-y divide-gray-200 text-sm';
-            
-            // Process results
-            const seriesData = results.results.results[0]?.series || [];
-            
-            if (seriesData.length === 0) {
-                resultsContainer.innerHTML += `
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-info-circle text-yellow-400"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700">
-                                    No results returned. Try a different query or time range.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Create table header
-            const thead = document.createElement('thead');
-            thead.className = 'bg-gray-100';
-            const headerRow = document.createElement('tr');
-            
-            // Add table headers based on columns from the first series
-            const series = seriesData[0];
-            if (series && series.columns) {
-                series.columns.forEach(column => {
-                    const th = document.createElement('th');
-                    th.className = 'px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider';
-                    th.textContent = column;
-                    headerRow.appendChild(th);
-                });
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-                
-                // Create table body
-                const tbody = document.createElement('tbody');
-                tbody.className = 'bg-white divide-y divide-gray-200';
-                
-                // Add rows
-                if (series.values && series.values.length > 0) {
-                    series.values.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'hover:bg-gray-50';
-                        
-                        row.forEach((cell, index) => {
-                            const td = document.createElement('td');
-                            td.className = 'px-3 py-2 whitespace-nowrap text-sm text-gray-500';
-                            
-                            // Format timestamp if this is a time column
-                            if (series.columns[index] === 'time' && typeof cell === 'string') {
-                                const date = new Date(cell);
-                                if (!isNaN(date)) {
-                                    td.textContent = date.toLocaleString();
-                                } else {
-                                    td.textContent = cell;
-                                }
-                            } else {
-                                td.textContent = cell !== null ? cell : 'null';
-                            }
-                            
-                            tr.appendChild(td);
-                        });
-                        
-                        tbody.appendChild(tr);
-                    });
-                }
-                
-                table.appendChild(tbody);
-                resultsContainer.appendChild(table);
-                
-                // Add result count
-                const countEl = document.createElement('p');
-                countEl.className = 'text-xs text-gray-500 mt-2';
-                countEl.textContent = `Showing ${series.values.length} results`;
-                resultsContainer.appendChild(countEl);
-            } else {
-                // No columns found
-                resultsContainer.innerHTML += `
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-info-circle text-yellow-400"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700">
-                                    Query executed successfully, but no data columns were returned.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else if (results.results && results.results.error) {
-            // Handle error in the results
-            resultsContainer.innerHTML += `
-                <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-500"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700">
-                                <strong>Error:</strong> ${results.results.error}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            // Handle show queries commands (SHOW DATABASES, SHOW MEASUREMENTS, etc.)
-            let rawResults = JSON.stringify(results.results, null, 2);
-            
-            // Create a code block for raw results
-            const pre = document.createElement('pre');
-            pre.className = 'bg-gray-100 p-3 rounded-md text-xs overflow-auto max-h-96';
-            pre.textContent = rawResults;
-            resultsContainer.appendChild(pre);
-        }
-    } catch (error) {
-        console.error("Error displaying results:", error);
-        resultsContainer.innerHTML += `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error displaying results:</strong> ${error.message}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <pre class="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-96">${escapeHtml(JSON.stringify(results, null, 2))}</pre>
-        `;
-    }
-}
-
-// Function to get dashboard information
-async function getDashboardInfo() {
-    const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
-    
-    // If empty, try to use environment variable
-    if (!apiKey || apiKey.trim() === '') {
-        apiKey = "{{ grafana_api_key|default('') }}";
-    }
-    
-    if (!url) {
-        showNotification('Please enter Grafana URL', 'error');
-        return;
-    }
-    
-    if (!apiKey) {
-        showNotification('Please enter API Key', 'error');
-        return;
-    }
-    
-    // Extract dashboard UID from URL if provided
-    const dashboardUrl = document.getElementById('dashboard_url').value;
-    let dashboardUid = '';
-    
-    try {
-        console.log("Parsing dashboard URL:", dashboardUrl);
-        
-        if (dashboardUrl) {
-            // First try to directly extract from the URL using regex (common format: /d/[uid]/dashboard-name)
-            const dashboardRegex = /\/d\/([^/?&#]+)/;
-            const match = dashboardUrl.match(dashboardRegex);
-            
-            if (match && match[1]) {
-                dashboardUid = match[1];
-                console.log("Found dashboard UID using regex:", dashboardUid);
-            } else {
-                // Fallback to manual parsing
-                const urlParts = dashboardUrl.split('/');
-                console.log("URL parts:", urlParts);
-                
-                // URL format is typically /d/[uid]/[dashboard-name]
-                for (let i = 0; i < urlParts.length; i++) {
-                    if (urlParts[i] === 'd' && i + 1 < urlParts.length) {
-                        dashboardUid = urlParts[i + 1];
-                        // Remove any query parameters
-                        if (dashboardUid.includes('?')) {
-                            dashboardUid = dashboardUid.split('?')[0];
-                        }
-                        console.log("Found dashboard UID via parsing:", dashboardUid);
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if (!dashboardUid) {
-            // If no UID found in URL, ask user to input directly
-            dashboardUid = prompt("Could not extract dashboard UID from URL. Please enter the dashboard UID directly:", "eeh0kvxjev0u8c");
-            if (dashboardUid) {
-                console.log("User entered dashboard UID:", dashboardUid);
-            } else {
-                showNotification('No dashboard UID provided', 'error');
-                return;
-            }
-        }
-        
-        // Show loading indicator
-        document.getElementById('dashboard-info-container').innerHTML = `
-            <div class="flex items-center justify-center p-6 text-blue-600">
-                <i class="fas fa-circle-notch fa-spin mr-2"></i>
-                <span>Loading dashboard information...</span>
-            </div>
-        `;
-        
-        // Make request to our backend
-        const response = await fetch('/settings/grafana/dashboard-info', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey,
-                dashboard_uid: dashboardUid
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Process and display dashboard info
-            displayDashboardInfo(result.data);
-        } else {
-            // Display error
-            document.getElementById('dashboard-info-container').innerHTML = `
-                <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-500"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700">
-                                <strong>Error:</strong> ${result.error || 'Unknown error'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            showNotification('Error fetching dashboard info: ' + result.error, 'error');
-        }
-    } catch (error) {
-        // Handle any errors
-        document.getElementById('dashboard-info-container').innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        showNotification('Error: ' + error.message, 'error');
-    }
-}
-
-// Function to display dashboard information
-function displayDashboardInfo(dashboardData) {
-    const container = document.getElementById('dashboard-info-container');
-    
-    // Store the dashboard data globally so we can access it from other functions
-    window.currentDashboardData = dashboardData;
-    
-    if (!dashboardData || !dashboardData.dashboard) {
-        container.innerHTML = `
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-info-circle text-yellow-400"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-yellow-700">
-                            No dashboard data found.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    const dashboard = dashboardData.dashboard;
-    
-    // Create HTML for dashboard info
-    let html = `
-        <div class="space-y-4">
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
-                <h3 class="font-medium text-blue-700">Dashboard: ${dashboard.title}</h3>
-                <p class="text-sm text-blue-600">UID: ${dashboard.uid}</p>
-                <p class="text-sm text-blue-600">Version: ${dashboard.version}</p>
-            </div>
-            
-            <div class="mt-4">
-                <h4 class="font-medium text-gray-700 mb-2">Panels</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    `;
-    
-    // Add panels
-    if (dashboard.panels && dashboard.panels.length > 0) {
-        dashboard.panels.forEach(panel => {
-            html += `
-                <div class="bg-white border rounded-md shadow-sm hover:shadow-md p-3">
-                    <h5 class="font-medium text-gray-800">${panel.title || 'Untitled Panel'}</h5>
-                    <p class="text-xs text-gray-500">ID: ${panel.id}, Type: ${panel.type}</p>
-                    
-                    <div class="mt-2 pt-2 border-t border-gray-100">
-                        <button 
-                            type="button" 
-                            onclick="viewPanelQuery(${panel.id}, '${panel.title ? panel.title.replace(/'/g, "\\'") : 'Untitled Panel'}')"
-                            class="text-xs text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-code mr-1"></i> View Query
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        html += `
-            <div class="col-span-full bg-gray-50 border rounded p-4 text-center text-gray-500">
-                No panels found in this dashboard.
-            </div>
-        `;
-    }
-    
-    html += `
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-// Function to load the query for a specific panel
-function loadPanelQuery(panelId, panelTitle) {
-    // Store the selected panel info
-    selectedPanelId = panelId;
-    selectedPanelTitle = panelTitle;
-    
-    // TODO: Implement fetching the specific panel query
-    
-    showNotification(`Loading query for panel: ${panelTitle} (ID: ${panelId})`, 'info');
-    
-    // For now, let's suggest a default query
-    const query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
-    
-    // Set the query in the textarea
-    document.getElementById('explorer-query').value = query;
-    
-    // Scroll to the query editor
-    document.getElementById('explorer-query').scrollIntoView({ behavior: 'smooth' });
-}
-
-// Function to get a Grafana snapshot
-async function getSnapshotInfo() {
-    const url = document.getElementById('grafana_url').value;
-    let apiKey = document.getElementById('api_key').value;
-    
-    // Debug logging
-    console.log("Getting snapshot info");
-    console.log("Grafana URL:", url);
-    console.log("API key length:", apiKey ? apiKey.length : 0);
-    
-    // If empty, try to use environment variable
-    if (!apiKey || apiKey.trim() === '') {
-        apiKey = "{{ grafana_api_key|default('') }}";
-        console.log("Using API key from environment variable, length:", apiKey ? apiKey.length : 0);
-    }
-    
-    if (!url) {
-        showNotification('Please enter Grafana URL', 'error');
-        return;
-    }
-    
-    if (!apiKey) {
-        showNotification('Please enter API Key', 'error');
-        return;
-    }
-    
-    // Extract snapshot key from URL
-    const snapshotUrl = document.getElementById('dashboard_url').value;
-    let snapshotKey = '';
-    
-    try {
-        console.log("Parsing snapshot URL:", snapshotUrl);
-        
-        if (snapshotUrl) {
-            // First try to directly extract from the URL using regex
-            const snapshotRegex = /\/snapshot\/([^/?&#]+)/;
-            const match = snapshotUrl.match(snapshotRegex);
-            
-            if (match && match[1]) {
-                snapshotKey = match[1];
-                console.log("Found snapshot key using regex:", snapshotKey);
-            } else {
-                // Fallback to manual parsing
-                const urlParts = snapshotUrl.split('/');
-                console.log("URL parts:", urlParts);
-                
-                // URL format is typically /dashboard/snapshot/[key]
-                for (let i = 0; i < urlParts.length; i++) {
-                    if ((urlParts[i] === 'snapshot' || urlParts[i] === 'snapshots') && i + 1 < urlParts.length) {
-                        snapshotKey = urlParts[i + 1];
-                        // Remove any query parameters
-                        if (snapshotKey.includes('?')) {
-                            snapshotKey = snapshotKey.split('?')[0];
-                        }
-                        console.log("Found snapshot key via parsing:", snapshotKey);
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if (!snapshotKey) {
-            // If no key found in URL, ask user to input directly
-            snapshotKey = prompt("Could not extract snapshot key from URL. Please enter the snapshot key directly:", "");
-            if (snapshotKey) {
-                console.log("User entered snapshot key:", snapshotKey);
-            } else {
-                showNotification('No snapshot key provided', 'error');
-                return;
-            }
-        }
-        
-        // Show loading indicator
-        document.getElementById('dashboard-info-container').innerHTML = `
-            <div class="flex items-center justify-center p-6 text-indigo-600">
-                <i class="fas fa-circle-notch fa-spin mr-2"></i>
-                <span>Loading snapshot information...</span>
-            </div>
-        `;
-        
-        // Make request to our backend
-        const apiEndpoint = '/settings/grafana/snapshot-info';
-        console.log("Calling API endpoint:", apiEndpoint);
-        console.log("Request payload:", JSON.stringify({
-            url: url,
-            api_key: "***MASKED***",
-            snapshot_key: snapshotKey
-        }));
-        
-        const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey,
-                snapshot_key: snapshotKey
-            })
-        });
-        
-        console.log("Response status:", response.status);
-        const result = await response.json();
-        console.log("Response data:", result);
-        
-        if (result.success) {
-            // Process and display snapshot info
-            displaySnapshotInfo(result.data);
-        } else {
-            // Display error
-            document.getElementById('dashboard-info-container').innerHTML = `
-                <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-500"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-red-700">
-                                <strong>Error:</strong> ${result.error || 'Unknown error'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            showNotification('Error fetching snapshot info: ' + result.error, 'error');
-        }
-    } catch (error) {
-        // Handle any errors
-        console.error("Error in getSnapshotInfo:", error);
-        document.getElementById('dashboard-info-container').innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        showNotification('Error: ' + error.message, 'error');
-    }
-}
-
-// Function to display snapshot information
-function displaySnapshotInfo(snapshotData) {
-    const container = document.getElementById('dashboard-info-container');
-    
-    if (!snapshotData || !snapshotData.dashboard) {
-        container.innerHTML = `
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-info-circle text-yellow-400"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-yellow-700">
-                            No snapshot data found.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    const dashboard = snapshotData.dashboard;
-    const snapshotInfo = {
-        name: snapshotData.name || 'Unnamed Snapshot',
-        external: snapshotData.external || false,
-        expires: snapshotData.expires ? new Date(snapshotData.expires).toLocaleString() : 'Never',
-        key: snapshotData.key || ''
-    };
-    
-    // Create HTML for dashboard info
-    let html = `
-        <div class="space-y-4">
-            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4">
-                <h3 class="font-medium text-indigo-700">Snapshot: ${snapshotInfo.name}</h3>
-                <p class="text-sm text-indigo-600">Key: ${snapshotInfo.key}</p>
-                <p class="text-sm text-indigo-600">Expires: ${snapshotInfo.expires}</p>
-                <p class="text-sm text-indigo-600">Dashboard Title: ${dashboard.title || 'Untitled'}</p>
-            </div>
-            
-            <div class="mt-4">
-                <h4 class="font-medium text-gray-700 mb-2">Snapshot Data</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    `;
-    
-    // Add panels
-    if (dashboard.panels && dashboard.panels.length > 0) {
-        dashboard.panels.forEach(panel => {
-            html += `
-                <div class="bg-white border rounded-md shadow-sm hover:shadow-md p-3">
-                    <h5 class="font-medium text-gray-800">${panel.title || 'Untitled Panel'}</h5>
-                    <p class="text-xs text-gray-500">ID: ${panel.id}, Type: ${panel.type}</p>
-                    
-                    <div class="mt-2 pt-2 border-t border-gray-100">
-                        <button 
-                            type="button" 
-                            onclick="loadSnapshotPanelData(${panel.id}, '${panel.title || 'Untitled Panel'}')"
-                            class="text-xs text-indigo-600 hover:text-indigo-800">
-                            <i class="fas fa-table mr-1"></i> View Data
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        html += `
-            <div class="col-span-full bg-gray-50 border rounded p-4 text-center text-gray-500">
-                No panels found in this snapshot.
-            </div>
-        `;
-    }
-    
-    html += `
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-// Function to load data from a specific snapshot panel
-function loadSnapshotPanelData(panelId, panelTitle) {
-    // Store the selected panel info
-    selectedPanelId = panelId;
-    selectedPanelTitle = panelTitle;
-    
-    showNotification(`Loading data for panel: ${panelTitle} (ID: ${panelId})`, 'info');
-    
-    // Set a basic query for the panel
-    document.getElementById('test_query').value = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 50`;
-    
-    // Focus on the query input
-    document.getElementById('test_query').focus();
-    
-    // Show suggestion to run the query
-    showNotification('Modify the query as needed and click "Run Query" to view the panel data', 'info');
-}
-
-// Function to extract the panel query from a dashboard panel
-function getPanelQuery(panelId) {
-    // Check if we have dashboard data stored
-    if (!window.currentDashboardData || !window.currentDashboardData.dashboard) {
-        showNotification('No dashboard data available', 'error');
-        return null;
-    }
-    
-    // Find the panel with the given ID
-    const panel = window.currentDashboardData.dashboard.panels.find(p => p.id === panelId);
-    
-    if (!panel) {
-        showNotification(`Panel with ID ${panelId} not found`, 'error');
-        return null;
-    }
-    
-    console.log("Panel data:", panel);
-    
-    // Extract queries using the common function
-    const queries = extractQueriesFromPanel(panel);
-    
-    // Return the first actual query (not a comment)
-    if (queries && queries.length > 1) {
-        const queryLines = queries[1].split('\n');
-        return queryLines.filter(line => !line.trim().startsWith('--')).join('\n').trim();
-    }
-    
-    return null;
-}
-
-// Extract working queries from panel JSON
-function extractQueriesFromPanel(panelJson) {
-    try {
-        // Parse panel if it's a string
-        const panel = typeof panelJson === 'string' ? JSON.parse(panelJson) : panelJson;
-        
-        console.log("Extracting queries from panel:", panel.title || "Untitled Panel");
-        
-        // Check if panel has targets
-        if (!panel.targets || panel.targets.length === 0) {
-            return ["// No queries found in this panel"];
-        }
-        
-        // Process each target to create working queries
-        const queries = panel.targets.map((target, index) => {
-            // Get query details
-            let measurement = target.measurement || '';
-            let rawQuery = target.rawQuery === true;
-            let queryText = target.query || '';
-            let datasource = '';
-            
-            // Try to get datasource info
-            if (target.datasource) {
-                if (typeof target.datasource === 'string') {
-                    datasource = target.datasource;
-                } else if (target.datasource.type) {
-                    datasource = target.datasource.type;
-                    if (target.datasource.uid) {
-                        datasource += ` (${target.datasource.uid})`;
-                    }
-                }
-            }
-            
-            // Skip empty queries
-            if (!queryText && !measurement) {
-                return null;
-            }
-            
-            // Create a comment with info about the target
-            let comment = `-- Target ${target.refId || index + 1}`;
-            if (target.alias) {
-                comment += `: ${target.alias}`;
-            }
-            if (datasource) {
-                comment += ` (${datasource})`;
-            }
-            
-            // Process raw query if available
-            if (rawQuery && queryText) {
-                // Replace Grafana variables with actual values
-                queryText = queryText
-                    .replace(/\$timeFilter/g, 'time > now() - 1h')
-                    .replace(/\$aggregation/g, '10')  // Using 10s aggregation as default
-                    .replace(/\$request/g, '.*')      // Match all requests
-                    .replace(/\[\[aggregation\]\]/g, '10') // Replace [[aggregation]] with 10s
-                    .replace(/\$__timeFilter/g, 'time > now() - 1h')
-                    .replace(/\$__interval/g, '10s');
-                
-                return `${comment}\n${queryText}`;
-            }
-            
-            // Build query from components if no raw query
-            let query = `SELECT `;
-            
-            // Build select clause
-            if (target.select && target.select.length > 0) {
-                const selects = target.select.map(selectGroup => {
-                    return selectGroup.map(select => {
-                        if (select.type === 'field') return `"${select.params[0]}"`;
-                        if (select.type === 'mean') return 'mean()';
-                        if (select.type === 'count') return 'count()';
-                        if (select.type === 'last') return 'last()';
-                        return select.type + '()';
-                    }).join(' ');
-                }).join(', ');
-                
-                query += selects;
-            } else {
-                query += '*';
-            }
-            
-            // Add measurement
-            if (measurement) {
-                query += ` FROM "${measurement}"`;
-            } else {
-                query += ` FROM "jmeter"`;
-            }
-            
-            // Add where clause
-            query += ` WHERE time > now() - 1h`;
-            
-            // Add tags if available
-            if (target.tags && target.tags.length > 0) {
-                target.tags.forEach(tag => {
-                    const value = tag.value.replace(/\/\^|\$\//g, '');
-                    query += ` AND "${tag.key}" = '${value}'`;
-                });
-            }
-            
-            // Add group by if available
-            if (target.groupBy && target.groupBy.length > 0) {
-                const groupBys = target.groupBy
-                    .filter(gb => gb.type !== 'fill') // Handle fill separately
-                    .map(gb => {
-                        if (gb.type === 'time') {
-                            return `time(${gb.params[0].replace('$__interval', '10s')})`;
-                        }
-                        return `"${gb.params[0]}"`;
-                    });
-                
-                if (groupBys.length > 0) {
-                    query += ` GROUP BY ${groupBys.join(', ')}`;
-                }
-                
-                // Add fill if present
-                const fillGroup = target.groupBy.find(gb => gb.type === 'fill');
-                if (fillGroup) {
-                    query += ` fill(${fillGroup.params[0]})`;
-                }
-            }
-            
-            // Add limit
-            query += ' LIMIT 100';
-            
-            return `${comment}\n${query}`;
-        }).filter(q => q !== null);
-        
-        // Return working queries with a header
-        return [`-- Queries from panel: ${panel.title || "Untitled Panel"} (ID: ${panel.id || "unknown"})`]
-            .concat(queries);
-    } catch (error) {
-        console.error("Error extracting queries from panel:", error);
-        return [`-- Error extracting queries: ${error.message}`, 
-                "SELECT * FROM \"requestsRaw\" WHERE time > now() - 1h LIMIT 100"];
-    }
-}
-
-// Parse Grafana panel JSON and extract working queries
-function parsePanelJson() {
-    const jsonInput = document.getElementById('panel_json');
-    const jsonText = jsonInput.value.trim();
-    
-    if (!jsonText) {
-        showNotification('Please enter panel JSON', 'error');
-        return;
-    }
-    
-    try {
-        // Parse the JSON
-        const panelData = JSON.parse(jsonText);
-        console.log("Parsed panel data:", panelData);
-        
-        // Extract working queries
-        const queries = extractQueriesFromPanel(panelData);
-        
-        if (queries && queries.length > 0) {
-            // Create a formatted display with buttons to run individual queries
-            const container = document.getElementById('dashboard-info-container');
-            let html = `
-                <div class="space-y-4">
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
-                        <h3 class="font-medium text-blue-700">Extracted Queries: ${panelData.title || 'Untitled Panel'}</h3>
-                        <p class="text-sm text-blue-600">Panel ID: ${panelData.id || 'Unknown'}</p>
-                    </div>
-                    
-                    <div class="mt-4 space-y-4">
-            `;
-            
-            // Skip the first item which is just a header comment
-            for (let i = 1; i < queries.length; i++) {
-                const query = queries[i];
-                const queryLines = query.split('\n');
-                const commentLine = queryLines[0]; // First line is the comment
-                
-                // Extract the actual query by removing comment lines
-                const actualQuery = queryLines.filter(line => !line.trim().startsWith('--')).join('\n').trim();
-                
-                // Format this query block
-                html += `
-                    <div class="bg-white border rounded-md p-4">
-                        <h5 class="font-medium text-gray-800">${commentLine.replace('--', '')}</h5>
-                        <pre class="bg-gray-50 p-3 rounded-md mt-2 text-xs font-mono overflow-x-auto">${actualQuery}</pre>
-                        <div class="mt-3 flex justify-end">
-                            <button 
-                                type="button" 
-                                onclick="runSingleQuery(${JSON.stringify(actualQuery)})"
-                                class="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-green-600 hover:bg-green-700">
-                                <i class="fas fa-play mr-1"></i> Run This Query
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            html += `
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-            container.scrollIntoView({ behavior: 'smooth' });
-            
-            // Also set the full query text in the textarea for reference
-            document.getElementById('test_query').value = queries.join('\n\n');
-            
-            showNotification('Successfully extracted ' + (queries.length - 1) + ' queries from panel', 'success');
-        } else {
-            showNotification('No queries found in the panel JSON', 'warning');
-        }
-    } catch (error) {
-        console.error("Error parsing panel JSON:", error);
-        showNotification('Error parsing panel JSON: ' + error.message, 'error');
-    }
-}
-
-// Run a single extracted query
-async function runSingleQuery(query) {
-    if (!query) {
-        showNotification('No query to run', 'error');
-        return;
-    }
-    
-    document.getElementById('test_query').value = query;
-    
-    // Show loading indicator
-    const resultsDiv = document.getElementById('query-results');
-    resultsDiv.innerHTML = `
-        <div class="flex items-center justify-center p-6 text-blue-600">
-            <i class="fas fa-circle-notch fa-spin mr-2"></i>
-            <span>Running query...</span>
-        </div>
-    `;
-    
-    try {
-        // Execute the query
-        const response = await runInfluxQuery(query);
-        
-        // Display results
-        displayQueryResults(response);
-        
-        // Scroll to results
-        resultsDiv.scrollIntoView({ behavior: 'smooth' });
-    } catch (error) {
-        // Handle errors
-        resultsDiv.innerHTML = `
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-}
-
-/*
-* ==================
-* Grafana Query Testing
-* ==================
-*/
-let currentDb = "mass_nft";
-
-/**
- * Exports panel data as CSV
- */
-function exportPanelCsv() {
-    const dashboardUid = document.getElementById('csv_dashboard_uid').value.trim();
-    const panelId = document.getElementById('csv_panel_id').value.trim();
-    const fromTime = document.getElementById('csv_from_time').value.trim();
-    const toTime = document.getElementById('csv_to_time').value.trim();
-    
-    if (!dashboardUid || !panelId) {
-        showToast('error', 'Dashboard UID and Panel ID are required');
-        return;
-    }
-    
-    if (!fromTime || !toTime) {
-        showToast('error', 'From and To times are required');
-        return;
-    }
-    
-    // Show loading indicator
-    showToast('info', 'Exporting CSV data...');
-    
-    fetch('/grafana/export-csv', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            url: document.getElementById('grafana_url').value.trim(),
-            api_key: document.getElementById('grafana_api_key').value.trim(),
-            dashboard_uid: dashboardUid,
-            panel_id: panelId,
-            from: fromTime,
-            to: toTime
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => { throw new Error(err.message || 'Error exporting CSV'); });
-        }
-        return response.blob();
-    })
-    .then(blob => {
-        // Create a download link and trigger the download
-        const filename = `panel_${panelId}_${new Date().toISOString().slice(0,10)}.csv`;
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        showToast('success', 'CSV downloaded successfully');
-    })
-    .catch(error => {
-        console.error('Error exporting CSV:', error);
-        showToast('error', `Error exporting CSV: ${error.message}`);
-    });
 }
 </script>
 
