@@ -2209,146 +2209,16 @@ function getPanelQuery(panelId) {
     
     console.log("Panel data:", panel);
     
-    // Extract the query based on panel type
-    let query = '';
+    // Extract queries using the common function
+    const queries = extractQueriesFromPanel(panel);
     
-    try {
-        // Try to extract the query from various locations depending on the panel structure
-        if (panel.targets && panel.targets.length > 0) {
-            const target = panel.targets[0];
-            
-            // For most panel types
-            if (target.query) {
-                query = target.query;
-            } 
-            // For raw SQL or InfluxQL
-            else if (target.rawQuery && target.rawSql) {
-                query = target.rawSql;
-            }
-            // For InfluxDB specific format
-            else if (target.measurement) {
-                query = `SELECT ${target.select ? target.select.map(s => s.join(' ')).join(', ') : '*'} FROM "${target.measurement}"`;
-                
-                // Add WHERE clause if it exists
-                if (target.where && target.where.length > 0) {
-                    query += ` WHERE ${target.where.join(' ')}`;
-                } else {
-                    // Add time filter if no WHERE clause
-                    query += ` WHERE time > now() - 1h`;
-                }
-                
-                // Add GROUP BY if it exists
-                if (target.groupBy && target.groupBy.length > 0) {
-                    query += ` GROUP BY ${target.groupBy.map(g => g.params.join(',')).join(' ')}`;
-                }
-                
-                // Add LIMIT
-                query += ' LIMIT 100';
-            }
-            // Check for Prometheus format
-            else if (target.expr) {
-                query = target.expr;
-            }
-            // Last resort - use a default query
-            else {
-                query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
-            }
-        } else {
-            // If no targets found, use a default query
-            query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
-        }
-        
-        // Process Grafana template variables
-        query = processQueryVariables(query);
-        
-    } catch (error) {
-        console.error("Error extracting query:", error);
-        query = `SELECT * FROM "jmeter" WHERE time > now() - 1h LIMIT 100`;
+    // Return the first actual query (not a comment)
+    if (queries && queries.length > 1) {
+        const queryLines = queries[1].split('\n');
+        return queryLines.filter(line => !line.trim().startsWith('--')).join('\n').trim();
     }
     
-    return query;
-}
-
-// Process Grafana template variables in queries
-function processQueryVariables(query) {
-    if (!query) return query;
-    
-    console.log("Original query:", query);
-    
-    // Replace Grafana variables with actual values
-    const replacements = {
-        '$timeFilter': 'time > now() - 1h',
-        '$__timeFilter': 'time > now() - 1h',
-        '$__timeFrom': 'now() - 1h',
-        '$__timeTo': 'now()',
-        '$__interval': '10s',
-        '$__interval_ms': '10000',
-        '$__timeGroup': 'time'
-    };
-    
-    // Replace each variable
-    Object.entries(replacements).forEach(([variable, value]) => {
-        // Escape special characters for regex
-        const escapedVar = variable.replace(/\$/g, '\\$');
-        const regex = new RegExp(escapedVar, 'g');
-        query = query.replace(regex, value);
-    });
-    
-    // Add double quotes around measurement names in FROM clause for InfluxDB compatibility
-    if (query.match(/FROM\s+(\w+)/i) && !query.match(/FROM\s+\"(\w+)\"/i)) {
-        query = query.replace(/FROM\s+(\w+)/gi, 'FROM "$1"');
-    }
-    
-    // For InfluxDB queries to work properly in our environment, try a few different modifications:
-    try {
-        // Option 1: Try simplifying the query by removing the WHERE clause and limiting results
-        let modifiedQuery = `SELECT * FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} LIMIT 100`;
-        console.log("Simplified query option:", modifiedQuery);
-        
-        // Option 2: Try using the SHOW SERIES command instead which often works when SELECT fails
-        let seriesQuery = `SHOW SERIES FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} LIMIT 100`;
-        console.log("Series query option:", seriesQuery);
-        
-        // Return original query with time constraint modified
-        return `SELECT * FROM ${query.match(/FROM\s+("[^"]+"|[^ ]+)/i)[1]} WHERE time > now() - 1h LIMIT 100`;
-    } catch (error) {
-        console.error("Error modifying query:", error);
-        // Default to a working query format
-        return `SHOW MEASUREMENTS LIMIT 100`;
-    }
-    
-    console.log("Processed query:", query);
-    return query;
-}
-
-// Function to load a panel query when "View Query" is clicked
-function viewPanelQuery(panelId, panelTitle) {
-    console.log(`View Query clicked for panel ${panelId} (${panelTitle})`);
-    
-    // Store the selected panel info
-    selectedPanelId = panelId;
-    selectedPanelTitle = panelTitle;
-    
-    // Get the query for this panel
-    const query = getPanelQuery(panelId);
-    
-    if (query) {
-        // Set the query in the textarea
-        document.getElementById('test_query').value = query;
-        
-        // Scroll to the query textarea
-        document.getElementById('test_query').scrollIntoView({ behavior: 'smooth' });
-        
-        // Flash the textarea to draw attention to it
-        document.getElementById('test_query').classList.add('highlight-pulse');
-        setTimeout(() => {
-            document.getElementById('test_query').classList.remove('highlight-pulse');
-        }, 2000);
-        
-        showNotification(`Loaded query for panel: ${panelTitle}. Scroll down to see it.`, 'success');
-    } else {
-        showNotification(`Could not extract query for panel: ${panelTitle}`, 'error');
-    }
+    return null;
 }
 
 // Extract working queries from panel JSON
@@ -2367,13 +2237,35 @@ function extractQueriesFromPanel(panelJson) {
         // Process each target to create working queries
         const queries = panel.targets.map((target, index) => {
             // Get query details
-            let measurement = target.measurement || 'unknown';
+            let measurement = target.measurement || '';
             let rawQuery = target.rawQuery === true;
             let queryText = target.query || '';
+            let datasource = '';
+            
+            // Try to get datasource info
+            if (target.datasource) {
+                if (typeof target.datasource === 'string') {
+                    datasource = target.datasource;
+                } else if (target.datasource.type) {
+                    datasource = target.datasource.type;
+                    if (target.datasource.uid) {
+                        datasource += ` (${target.datasource.uid})`;
+                    }
+                }
+            }
             
             // Skip empty queries
             if (!queryText && !measurement) {
                 return null;
+            }
+            
+            // Create a comment with info about the target
+            let comment = `-- Target ${target.refId || index + 1}`;
+            if (target.alias) {
+                comment += `: ${target.alias}`;
+            }
+            if (datasource) {
+                comment += ` (${datasource})`;
             }
             
             // Process raw query if available
@@ -2383,9 +2275,11 @@ function extractQueriesFromPanel(panelJson) {
                     .replace(/\$timeFilter/g, 'time > now() - 1h')
                     .replace(/\$aggregation/g, '10')  // Using 10s aggregation as default
                     .replace(/\$request/g, '.*')      // Match all requests
-                    .replace(/\[\[aggregation\]\]/g, '10'); // Replace [[aggregation]] with 10s
+                    .replace(/\[\[aggregation\]\]/g, '10') // Replace [[aggregation]] with 10s
+                    .replace(/\$__timeFilter/g, 'time > now() - 1h')
+                    .replace(/\$__interval/g, '10s');
                 
-                return `-- Target ${target.refId || index + 1}: ${target.alias || 'Unnamed'}\n${queryText}`;
+                return `${comment}\n${queryText}`;
             }
             
             // Build query from components if no raw query
@@ -2409,7 +2303,11 @@ function extractQueriesFromPanel(panelJson) {
             }
             
             // Add measurement
-            query += ` FROM "${measurement}"`;
+            if (measurement) {
+                query += ` FROM "${measurement}"`;
+            } else {
+                query += ` FROM "jmeter"`;
+            }
             
             // Add where clause
             query += ` WHERE time > now() - 1h`;
@@ -2447,7 +2345,7 @@ function extractQueriesFromPanel(panelJson) {
             // Add limit
             query += ' LIMIT 100';
             
-            return `-- Target ${target.refId || index + 1}: ${target.alias || 'Unnamed'}\n${query}`;
+            return `${comment}\n${query}`;
         }).filter(q => q !== null);
         
         // Return working queries with a header
@@ -2479,20 +2377,54 @@ function parsePanelJson() {
         const queries = extractQueriesFromPanel(panelData);
         
         if (queries && queries.length > 0) {
-            // Join the queries with line breaks
-            const queryText = queries.join('\n\n');
+            // Create a formatted display with buttons to run individual queries
+            const container = document.getElementById('dashboard-info-container');
+            let html = `
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <h3 class="font-medium text-blue-700">Extracted Queries: ${panelData.title || 'Untitled Panel'}</h3>
+                        <p class="text-sm text-blue-600">Panel ID: ${panelData.id || 'Unknown'}</p>
+                    </div>
+                    
+                    <div class="mt-4 space-y-4">
+            `;
             
-            // Set the query in the textarea
-            document.getElementById('test_query').value = queryText;
+            // Skip the first item which is just a header comment
+            for (let i = 1; i < queries.length; i++) {
+                const query = queries[i];
+                const queryLines = query.split('\n');
+                const commentLine = queryLines[0]; // First line is the comment
+                
+                // Extract the actual query by removing comment lines
+                const actualQuery = queryLines.filter(line => !line.trim().startsWith('--')).join('\n').trim();
+                
+                // Format this query block
+                html += `
+                    <div class="bg-white border rounded-md p-4">
+                        <h5 class="font-medium text-gray-800">${commentLine.replace('--', '')}</h5>
+                        <pre class="bg-gray-50 p-3 rounded-md mt-2 text-xs font-mono overflow-x-auto">${actualQuery}</pre>
+                        <div class="mt-3 flex justify-end">
+                            <button 
+                                type="button" 
+                                onclick="runSingleQuery(${JSON.stringify(actualQuery)})"
+                                class="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-green-600 hover:bg-green-700">
+                                <i class="fas fa-play mr-1"></i> Run This Query
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
             
-            // Scroll to the query textarea
-            document.getElementById('test_query').scrollIntoView({ behavior: 'smooth' });
+            html += `
+                    </div>
+                </div>
+            `;
             
-            // Flash the textarea to draw attention to it
-            document.getElementById('test_query').classList.add('highlight-pulse');
-            setTimeout(() => {
-                document.getElementById('test_query').classList.remove('highlight-pulse');
-            }, 2000);
+            container.innerHTML = html;
+            container.scrollIntoView({ behavior: 'smooth' });
+            
+            // Also set the full query text in the textarea for reference
+            document.getElementById('test_query').value = queries.join('\n\n');
             
             showNotification('Successfully extracted ' + (queries.length - 1) + ' queries from panel', 'success');
         } else {
@@ -2501,6 +2433,52 @@ function parsePanelJson() {
     } catch (error) {
         console.error("Error parsing panel JSON:", error);
         showNotification('Error parsing panel JSON: ' + error.message, 'error');
+    }
+}
+
+// Run a single extracted query
+async function runSingleQuery(query) {
+    if (!query) {
+        showNotification('No query to run', 'error');
+        return;
+    }
+    
+    document.getElementById('test_query').value = query;
+    
+    // Show loading indicator
+    const resultsDiv = document.getElementById('query-results');
+    resultsDiv.innerHTML = `
+        <div class="flex items-center justify-center p-6 text-blue-600">
+            <i class="fas fa-circle-notch fa-spin mr-2"></i>
+            <span>Running query...</span>
+        </div>
+    `;
+    
+    try {
+        // Execute the query
+        const response = await runInfluxQuery(query);
+        
+        // Display results
+        displayQueryResults(response);
+        
+        // Scroll to results
+        resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        // Handle errors
+        resultsDiv.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            <strong>Error:</strong> ${error.message || 'Unknown error occurred'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 }
 </script>
