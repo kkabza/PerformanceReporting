@@ -1937,27 +1937,42 @@ async function getSnapshotInfo() {
         console.log("Parsing snapshot URL:", snapshotUrl);
         
         if (snapshotUrl) {
-            // Parse the URL to extract the snapshot key
-            const urlParts = snapshotUrl.split('/');
-            console.log("URL parts:", urlParts);
+            // First try to directly extract from the URL using regex
+            const snapshotRegex = /\/snapshot\/([^/?&#]+)/;
+            const match = snapshotUrl.match(snapshotRegex);
             
-            // URL format is typically /dashboard/snapshot/[key]
-            for (let i = 0; i < urlParts.length; i++) {
-                if ((urlParts[i] === 'snapshot' || urlParts[i] === 'snapshots') && i + 1 < urlParts.length) {
-                    snapshotKey = urlParts[i + 1];
-                    // Remove any query parameters
-                    if (snapshotKey.includes('?')) {
-                        snapshotKey = snapshotKey.split('?')[0];
+            if (match && match[1]) {
+                snapshotKey = match[1];
+                console.log("Found snapshot key using regex:", snapshotKey);
+            } else {
+                // Fallback to manual parsing
+                const urlParts = snapshotUrl.split('/');
+                console.log("URL parts:", urlParts);
+                
+                // URL format is typically /dashboard/snapshot/[key]
+                for (let i = 0; i < urlParts.length; i++) {
+                    if ((urlParts[i] === 'snapshot' || urlParts[i] === 'snapshots') && i + 1 < urlParts.length) {
+                        snapshotKey = urlParts[i + 1];
+                        // Remove any query parameters
+                        if (snapshotKey.includes('?')) {
+                            snapshotKey = snapshotKey.split('?')[0];
+                        }
+                        console.log("Found snapshot key via parsing:", snapshotKey);
+                        break;
                     }
-                    console.log("Found snapshot key:", snapshotKey);
-                    break;
                 }
             }
         }
         
         if (!snapshotKey) {
-            showNotification('Could not extract snapshot key from URL', 'error');
-            return;
+            // If no key found in URL, ask user to input directly
+            snapshotKey = prompt("Could not extract snapshot key from URL. Please enter the snapshot key directly:", "");
+            if (snapshotKey) {
+                console.log("User entered snapshot key:", snapshotKey);
+            } else {
+                showNotification('No snapshot key provided', 'error');
+                return;
+            }
         }
         
         // Show loading indicator
