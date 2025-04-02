@@ -1833,6 +1833,9 @@ async function getDashboardInfo() {
 function displayDashboardInfo(dashboardData) {
     const container = document.getElementById('dashboard-info-container');
     
+    // Store the dashboard data globally so we can access it from other functions
+    window.currentDashboardData = dashboardData;
+    
     if (!dashboardData || !dashboardData.dashboard) {
         container.innerHTML = `
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
@@ -1878,7 +1881,7 @@ function displayDashboardInfo(dashboardData) {
                     <div class="mt-2 pt-2 border-t border-gray-100">
                         <button 
                             type="button" 
-                            onclick="loadPanelQuery(${panel.id}, '${panel.title || 'Untitled Panel'}')"
+                            onclick="viewPanelQuery(${panel.id}, '${panel.title ? panel.title.replace(/'/g, "\\'") : 'Untitled Panel'}')"
                             class="text-xs text-blue-600 hover:text-blue-800">
                             <i class="fas fa-code mr-1"></i> View Query
                         </button>
@@ -2170,5 +2173,120 @@ function loadSnapshotPanelData(panelId, panelTitle) {
     // Show suggestion to run the query
     showNotification('Modify the query as needed and click "Run Query" to view the panel data', 'info');
 }
+
+// Function to extract the panel query from a dashboard panel
+function getPanelQuery(panelId) {
+    // Check if we have dashboard data stored
+    if (!window.currentDashboardData || !window.currentDashboardData.dashboard) {
+        showNotification('No dashboard data available', 'error');
+        return null;
+    }
+    
+    // Find the panel with the given ID
+    const panel = window.currentDashboardData.dashboard.panels.find(p => p.id === panelId);
+    
+    if (!panel) {
+        showNotification(`Panel with ID ${panelId} not found`, 'error');
+        return null;
+    }
+    
+    console.log("Panel data:", panel);
+    
+    // Extract the query based on panel type
+    let query = '';
+    
+    try {
+        // Try to extract the query from various locations depending on the panel structure
+        if (panel.targets && panel.targets.length > 0) {
+            const target = panel.targets[0];
+            
+            // For most panel types
+            if (target.query) {
+                query = target.query;
+            } 
+            // For raw SQL or InfluxQL
+            else if (target.rawQuery && target.rawSql) {
+                query = target.rawSql;
+            }
+            // For InfluxDB specific format
+            else if (target.measurement) {
+                query = `SELECT ${target.select ? target.select.map(s => s.join(' ')).join(', ') : '*'} FROM "${target.measurement}"`;
+                
+                // Add WHERE clause if it exists
+                if (target.where && target.where.length > 0) {
+                    query += ` WHERE ${target.where.join(' ')}`;
+                }
+                
+                // Add GROUP BY if it exists
+                if (target.groupBy && target.groupBy.length > 0) {
+                    query += ` GROUP BY ${target.groupBy.map(g => g.params.join(',')).join(' ')}`;
+                }
+                
+                // Add LIMIT
+                query += ' LIMIT 100';
+            }
+            // Check for Prometheus format
+            else if (target.expr) {
+                query = target.expr;
+            }
+            // Last resort - use a default query
+            else {
+                query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+            }
+        } else {
+            // If no targets found, use a default query
+            query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+        }
+    } catch (error) {
+        console.error("Error extracting query:", error);
+        query = `SELECT * FROM jmeter WHERE time > now() - 1h LIMIT 100`;
+    }
+    
+    return query;
+}
+
+// Function to load a panel query when "View Query" is clicked
+function viewPanelQuery(panelId, panelTitle) {
+    console.log(`View Query clicked for panel ${panelId} (${panelTitle})`);
+    
+    // Store the selected panel info
+    selectedPanelId = panelId;
+    selectedPanelTitle = panelTitle;
+    
+    // Get the query for this panel
+    const query = getPanelQuery(panelId);
+    
+    if (query) {
+        // Set the query in the textarea
+        document.getElementById('test_query').value = query;
+        
+        // Scroll to the query textarea
+        document.getElementById('test_query').scrollIntoView({ behavior: 'smooth' });
+        
+        // Flash the textarea to draw attention to it
+        document.getElementById('test_query').classList.add('highlight-pulse');
+        setTimeout(() => {
+            document.getElementById('test_query').classList.remove('highlight-pulse');
+        }, 2000);
+        
+        showNotification(`Loaded query for panel: ${panelTitle}. Scroll down to see it.`, 'success');
+    } else {
+        showNotification(`Could not extract query for panel: ${panelTitle}`, 'error');
+    }
+}
 </script>
+
+<style>
+    /* Animation for highlighting the textarea */
+    @keyframes highlightPulse {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+        50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    
+    .highlight-pulse {
+        animation: highlightPulse 1s ease-in-out;
+        border-color: #3b82f6 !important;
+    }
+</style>
 {% endblock %} 
