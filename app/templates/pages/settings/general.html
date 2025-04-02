@@ -660,6 +660,9 @@ SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > n
 <script>
 // Tab switching functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize active tab
+    switchTab('devops');
+    
     // Add click handlers for Grafana tabs
     document.querySelectorAll('.grafana-tab').forEach(tab => {
         tab.addEventListener('click', function(e) {
@@ -684,6 +687,35 @@ document.addEventListener('DOMContentLoaded', function() {
         fileUpload.addEventListener('change', handleFileUpload);
     }
 });
+
+// Function to switch between main tabs
+function switchTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+        selectedTab.classList.add('active');
+    }
+    
+    // Add active class to selected button
+    const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
+    if (activeButton) {
+        activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        activeButton.classList.add('border-blue-500', 'text-blue-600');
+    }
+}
 
 // Switch between Grafana tabs
 function switchGrafanaTab(tabId) {
@@ -1001,6 +1033,67 @@ function initializeChart(data, title, xAxisLabel, yAxisLabel) {
                 }
             }
         }
+    });
+}
+
+/**
+ * Exports panel data as CSV
+ */
+function exportPanelCsv() {
+    const dashboardUid = document.getElementById('csv_dashboard_uid').value.trim();
+    const panelId = document.getElementById('csv_panel_id').value.trim();
+    const fromTime = document.getElementById('csv_from_time').value.trim();
+    const toTime = document.getElementById('csv_to_time').value.trim();
+    
+    if (!dashboardUid || !panelId) {
+        showToast('Dashboard UID and Panel ID are required', 'error');
+        return;
+    }
+    
+    if (!fromTime || !toTime) {
+        showToast('From and To times are required', 'error');
+        return;
+    }
+    
+    // Show loading indicator
+    showToast('Exporting CSV data...', 'info');
+    
+    fetch('/grafana/export-csv', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: document.getElementById('grafana_url').value.trim(),
+            api_key: document.getElementById('api_key').value.trim(),
+            dashboard_uid: dashboardUid,
+            panel_id: panelId,
+            from: fromTime,
+            to: toTime
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.message || 'Error exporting CSV'); });
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create a download link and trigger the download
+        const filename = `panel_${panelId}_${new Date().toISOString().slice(0,10)}.csv`;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showToast('CSV downloaded successfully', 'success');
+    })
+    .catch(error => {
+        console.error('Error exporting CSV:', error);
+        showToast(`Error exporting CSV: ${error.message}`, 'error');
     });
 }
 </script>
