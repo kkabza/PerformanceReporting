@@ -377,7 +377,7 @@ async function testGrafanaConnection() {
     }
 
     try {
-        const response = await fetch('/api/settings/grafana/test-connection', {
+        const response = await fetch('/api/grafana/test-connection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -410,7 +410,7 @@ async function testGrafanaQuery() {
     }
 
     try {
-        const response = await fetch('/api/settings/grafana/test-query', {
+        const response = await fetch('/api/grafana/test-query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
