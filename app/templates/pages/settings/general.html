@@ -4,6 +4,80 @@
 
 {% block page_content %}
 <div class="min-h-screen bg-gray-100">
+    <!-- Global Notification Functions -->
+    <script>
+    // Global notification functions
+    function showToast(message, type = 'info') {
+        // Check if notifications-container exists, create if not
+        let container = document.getElementById('notifications-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notifications-container';
+            container.className = 'fixed bottom-4 right-4 z-50 space-y-4';
+            document.body.appendChild(container);
+        }
+        
+        const id = 'notification-' + Date.now();
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.id = id;
+        notification.classList.add('rounded-lg', 'p-4', 'flex', 'items-center', 'justify-between', 'shadow-lg', 'transform', 'transition-all', 'duration-300', 'translate-y-0', 'opacity-0');
+        
+        // Set styles based on type
+        let icon = '';
+        if (type === 'success') {
+            notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
+            icon = '<i class="fas fa-check-circle text-green-500 mr-3"></i>';
+        } else if (type === 'error') {
+            notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
+            icon = '<i class="fas fa-exclamation-circle text-red-500 mr-3"></i>';
+        } else if (type === 'warning') {
+            notification.classList.add('bg-yellow-100', 'border-l-4', 'border-yellow-500', 'text-yellow-700');
+            icon = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>';
+        } else {
+            notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
+            icon = '<i class="fas fa-info-circle text-blue-500 mr-3"></i>';
+        }
+        
+        // Create content
+        notification.innerHTML = `
+            <div class="flex items-center">
+                ${icon}
+                <span>${message}</span>
+            </div>
+            <button onclick="dismissNotification('${id}')" class="ml-4 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.replace('opacity-0', 'opacity-100');
+        }, 10);
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            dismissNotification(id);
+        }, 5000);
+    }
+
+    // Dismiss notification function
+    function dismissNotification(id) {
+        const notification = document.getElementById(id);
+        if (notification) {
+            notification.classList.replace('opacity-100', 'opacity-0');
+            notification.classList.add('translate-y-2');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }
+    }
+    </script>
+    
     <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <div class="md:flex md:items-center md:justify-between">
@@ -929,77 +1003,6 @@ function initializeChart(data, title, xAxisLabel, yAxisLabel) {
         }
     });
 }
-
-// Show notification
-function showToast(message, type = 'info') {
-    // Check if notifications-container exists, create if not
-    let container = document.getElementById('notifications-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notifications-container';
-        container.className = 'fixed bottom-4 right-4 z-50 space-y-4';
-        document.body.appendChild(container);
-    }
-    
-    const id = 'notification-' + Date.now();
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.id = id;
-    notification.classList.add('rounded-lg', 'p-4', 'flex', 'items-center', 'justify-between', 'shadow-lg', 'transform', 'transition-all', 'duration-300', 'translate-y-0', 'opacity-0');
-    
-    // Set styles based on type
-    let icon = '';
-    if (type === 'success') {
-        notification.classList.add('bg-green-100', 'border-l-4', 'border-green-500', 'text-green-700');
-        icon = '<i class="fas fa-check-circle text-green-500 mr-3"></i>';
-    } else if (type === 'error') {
-        notification.classList.add('bg-red-100', 'border-l-4', 'border-red-500', 'text-red-700');
-        icon = '<i class="fas fa-exclamation-circle text-red-500 mr-3"></i>';
-    } else if (type === 'warning') {
-        notification.classList.add('bg-yellow-100', 'border-l-4', 'border-yellow-500', 'text-yellow-700');
-        icon = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>';
-    } else {
-        notification.classList.add('bg-blue-100', 'border-l-4', 'border-blue-500', 'text-blue-700');
-        icon = '<i class="fas fa-info-circle text-blue-500 mr-3"></i>';
-    }
-    
-    // Create content
-    notification.innerHTML = `
-        <div class="flex items-center">
-            ${icon}
-            <span>${message}</span>
-        </div>
-        <button onclick="dismissNotification('${id}')" class="ml-4 text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    // Add to container
-    container.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.classList.replace('opacity-0', 'opacity-100');
-    }, 10);
-    
-    // Auto dismiss after 5 seconds
-    setTimeout(() => {
-        dismissNotification(id);
-    }, 5000);
-}
-
-// Dismiss notification function
-function dismissNotification(id) {
-    const notification = document.getElementById(id);
-    if (notification) {
-        notification.classList.replace('opacity-100', 'opacity-0');
-        notification.classList.add('translate-y-2');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }
-}
 </script>
 
 <style>
@@ -1015,4 +1018,7 @@ function dismissNotification(id) {
         border-color: #3b82f6 !important;
     }
 </style>
+
+<!-- Notifications container -->
+<div id="notifications-container" class="fixed bottom-4 right-4 z-50 space-y-4"></div>
 {% endblock %} 
