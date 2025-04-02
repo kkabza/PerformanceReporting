@@ -173,12 +173,12 @@
                                         placeholder="For InfluxDB: 
 SHOW MEASUREMENTS
 SHOW DATABASES
-SELECT * FROM cpu LIMIT 10">SHOW MEASUREMENTS ON mass_nft</textarea>
+SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h LIMIT 100</textarea>
                                     <p class="mt-2 text-sm text-gray-500">
-                                        Try these queries for the mass_nft database: 
-                                        1. <code>SHOW MEASUREMENTS ON mass_nft</code> (lists tables in the database)
-                                        2. <code>SELECT * FROM mass_nft.autogen.measurement_name LIMIT 10</code> (replace 'measurement_name' with a table name)
-                                        3. <code>SELECT * FROM mass_nft.autogen.measurement_name WHERE time > now() - 24h</code> (data from last 24 hours)
+                                        Sample queries for jmeter data:
+                                        1. <code>SELECT * FROM mass_nft.autogen.jmeter LIMIT 50</code> (most recent 50 records)
+                                        2. <code>SELECT * FROM mass_nft.autogen.jmeter WHERE time > now() - 1h</code> (data from last hour)
+                                        3. <code>SELECT mean("value") FROM mass_nft.autogen.jmeter WHERE time > now() - 1d GROUP BY time(30m)</code> (30-min averages)
                                     </p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
