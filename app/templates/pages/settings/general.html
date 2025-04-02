@@ -188,10 +188,17 @@
                                 </div>
                             </div>
                             <!-- Query Results -->
-                            <div id="queryResults" class="mt-4 hidden">
-                                <h4 class="text-md font-medium text-gray-800 mb-2">Query Results</h4>
-                                <div class="bg-gray-100 rounded-md p-4">
-                                    <pre id="queryResultsContent" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
+                            <div id="grafanaResults" class="mt-6 hidden">
+                                <!-- Loading spinner -->
+                                <div id="grafanaLoading" class="flex items-center space-x-2 py-4">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500"></div>
+                                    <span class="text-gray-600">Loading results...</span>
+                                </div>
+                                
+                                <!-- Results container -->
+                                <div id="grafanaResultContainer" class="hidden">
+                                    <h3 class="text-lg font-semibold mt-4 mb-2">Query Results</h3>
+                                    <div id="grafanaResultsContent" class="border rounded p-4 bg-gray-50 font-mono text-sm overflow-auto max-h-96"></div>
                                 </div>
                             </div>
                         </div>
@@ -445,15 +452,31 @@ async function testGrafanaConnection() {
 
 async function testGrafanaQuery() {
     const url = document.getElementById('grafana_url').value;
-    const apiKey = document.getElementById('api_key').value;
+    let apiKey = document.getElementById('api_key').value;
     const query = document.getElementById('test_query').value;
     
-    if (!url || !apiKey || !query) {
-        alert('Please enter Grafana URL, API Key, and Query');
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+        console.log("Using API key from environment variables");
+    }
+    
+    if (!query) {
+        showNotification('Please enter a query', 'warning');
         return;
     }
-
+    
     try {
+        // Show loading spinner
+        document.getElementById('grafanaResults').classList.remove('hidden');
+        document.getElementById('grafanaLoading').classList.remove('hidden');
+        document.getElementById('grafanaResultContainer').classList.add('hidden');
+        
+        // Disable button during request
+        const button = document.getElementById('testGrafanaQueryBtn');
+        button.disabled = true;
+        button.classList.add('opacity-75', 'cursor-not-allowed');
+        
         const response = await fetch('/api/grafana/test-query', {
             method: 'POST',
             headers: {
@@ -465,23 +488,125 @@ async function testGrafanaQuery() {
                 query: query
             })
         });
-
-        const data = await response.json();
-        const resultsDiv = document.getElementById('queryResults');
-        const resultsContent = document.getElementById('queryResultsContent');
         
-        resultsDiv.classList.remove('hidden');
+        // Parse the response
+        const data = await response.json();
+        
+        // Hide loading spinner
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        
+        // Enable button
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
+        
         if (data.success) {
-            resultsContent.textContent = JSON.stringify(data.results, null, 2);
+            // Format the results
+            let formattedResults = '';
+            
+            // Check if the response has the expected structure
+            if (data.results && data.results.results) {
+                // Extract the frames data
+                const frames = data.results.results.A.frames;
+                if (frames && frames.length > 0) {
+                    // Generate a formatted table
+                    formattedResults = formatGrafanaResults(frames);
+                } else {
+                    formattedResults = 'Query executed successfully, but no data was returned.';
+                }
+            } else {
+                formattedResults = 'Query executed successfully, but returned an unexpected format.';
+            }
+            
+            // Update the results container
+            document.getElementById('grafanaResultContainer').classList.remove('hidden');
+            document.getElementById('grafanaResultsContent').innerHTML = formattedResults;
+            
+            showNotification('Query executed successfully', 'success');
         } else {
-            resultsContent.textContent = 'Error: ' + data.error;
+            // Check if there's an HTML response
+            if (data.html_response) {
+                // Display the HTML response in the results container
+                document.getElementById('grafanaResultContainer').classList.remove('hidden');
+                document.getElementById('grafanaResultsContent').innerHTML = 
+                    '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700 font-mono overflow-auto max-h-96">' +
+                    '<h3 class="font-bold mb-2">HTML Response (This likely means a redirect to login page):</h3>' +
+                    '<pre>' + escapeHtml(data.html_response) + '</pre>' +
+                    '</div>';
+            }
+            
+            showNotification('Error executing query: ' + data.error, 'error');
         }
+        
     } catch (error) {
-        const resultsDiv = document.getElementById('queryResults');
-        const resultsContent = document.getElementById('queryResultsContent');
-        resultsDiv.classList.remove('hidden');
-        resultsContent.textContent = 'Error executing query: ' + error.message;
+        // Hide loading spinner and show error
+        document.getElementById('grafanaLoading').classList.add('hidden');
+        document.getElementById('grafanaResultContainer').classList.remove('hidden');
+        document.getElementById('grafanaResultsContent').innerText = 'Error parsing response: ' + error.message;
+        
+        // Enable button
+        const button = document.getElementById('testGrafanaQueryBtn');
+        button.disabled = false;
+        button.classList.remove('opacity-75', 'cursor-not-allowed');
+        
+        showNotification('Error: ' + error.message, 'error');
     }
+}
+
+// Helper function to safely escape HTML content
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Helper function to format Grafana results as a table
+function formatGrafanaResults(frames) {
+    let html = '<div class="overflow-x-auto">';
+    
+    for (const frame of frames) {
+        html += '<div class="mb-6">';
+        
+        // Add frame name if available
+        if (frame.name) {
+            html += `<h3 class="text-lg font-semibold mb-2">${frame.name}</h3>`;
+        }
+        
+        // Create table
+        html += '<table class="min-w-full bg-white border border-gray-300">';
+        
+        // Create table header
+        html += '<thead><tr class="bg-gray-100">';
+        if (frame.schema && frame.schema.fields) {
+            for (const field of frame.schema.fields) {
+                html += `<th class="border border-gray-300 px-4 py-2">${field.name}</th>`;
+            }
+        }
+        html += '</tr></thead>';
+        
+        // Create table body
+        html += '<tbody>';
+        if (frame.data && frame.data.values && frame.data.values.length > 0) {
+            // Calculate number of rows
+            const numRows = frame.data.values[0].length || 0;
+            
+            // Create rows
+            for (let i = 0; i < numRows; i++) {
+                html += '<tr>';
+                for (let j = 0; j < frame.data.values.length; j++) {
+                    const value = frame.data.values[j][i];
+                    html += `<td class="border border-gray-300 px-4 py-2">${value}</td>`;
+                }
+                html += '</tr>';
+            }
+        }
+        html += '</tbody></table></div>';
+    }
+    
+    html += '</div>';
+    return html;
 }
 
 async function testOpenAIConnection() {

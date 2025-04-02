@@ -177,39 +177,6 @@ def test_grafana_query():
     if api_key:
         current_app.logger.info(f"API key prefix: {api_key[:5]}...")
     
-    # Begin special debugging for API key issue
-    # First, try a raw HTTP call to /api/datasources endpoint as a simple API test
-    try:
-        current_app.logger.info("DIRECT DEBUG TEST: Testing direct Grafana API connection")
-        raw_url = url or os.getenv('GRAFANA_URL')
-        raw_key = api_key or os.getenv('GRAFANA_API_TOKEN')
-        
-        if not raw_url.startswith(('http://', 'https://')):
-            raw_url = f"http://{raw_url}"
-        
-        test_endpoint = f"{raw_url}/api/datasources"
-        current_app.logger.info(f"DIRECT DEBUG TEST: Testing endpoint: {test_endpoint}")
-        
-        test_response = requests.get(
-            test_endpoint, 
-            headers={
-                'Authorization': f'Bearer {raw_key}'
-            },
-            verify=False,
-            timeout=10
-        )
-        
-        current_app.logger.info(f"DIRECT DEBUG TEST: Status code: {test_response.status_code}")
-        current_app.logger.info(f"DIRECT DEBUG TEST: Response headers: {dict(test_response.headers)}")
-        
-        if test_response.status_code == 200:
-            current_app.logger.info(f"DIRECT DEBUG TEST: Success! Response: {test_response.text[:500]}")
-        else:
-            current_app.logger.error(f"DIRECT DEBUG TEST: Failed! Response: {test_response.text[:500]}")
-    except Exception as e:
-        current_app.logger.error(f"DIRECT DEBUG TEST: Exception: {str(e)}")
-    # End special debugging
-    
     # If URL or API key is not provided in the request, use environment variables
     if not url or not url.strip():
         url = os.getenv('GRAFANA_URL')
@@ -251,78 +218,74 @@ def test_grafana_query():
     full_url = f"{protocol}://{url}"
     current_app.logger.info(f"Using Grafana URL: {full_url}")
     
-    # Try different auth methods - sometimes Grafana supports different formats
-    auth_methods = [
-        {'Authorization': f'Bearer {api_key}'},
-        {'Authorization': f'token {api_key}'},
-        {'Authorization': api_key},
-        {'X-Grafana-Org-Id': '1', 'Authorization': f'Bearer {api_key}'}
-    ]
-    
-    # Track errors for each auth method
-    auth_errors = []
-    
-    for auth_header in auth_methods:
-        try:
-            current_app.logger.info(f"Trying auth method: {auth_header}")
-            
-            # Set up headers for API request
-            headers = auth_header.copy()
-            headers.update({
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+    # Try the query with authorization header
+    try:
+        # Set up headers for API request
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        
+        # Log the headers for debugging (without the actual key value)
+        debug_headers = headers.copy()
+        if 'Authorization' in debug_headers:
+            debug_headers['Authorization'] = 'Bearer ***MASKED***'
+        current_app.logger.info(f"Request headers: {debug_headers}")
+        
+        # Execute the query through the Grafana API
+        current_time = int(time.time())
+        one_hour_ago = current_time - 3600
+        
+        # Simplified payload structure matching expected Grafana API format
+        payload = {
+            'queries': [
+                {
+                    'refId': 'A',
+                    'datasourceId': 1,  # Default Prometheus datasource
+                    'expr': query,
+                    'instant': True
+                }
+            ],
+            'from': str(one_hour_ago * 1000),
+            'to': str(current_time * 1000)
+        }
+        
+        current_app.logger.info(f"Request payload: {json.dumps(payload)}")
+        
+        # Disable SSL verification for development
+        verify_ssl = False
+        current_app.logger.info(f"SSL verification: disabled for testing")
+        
+        # Try the Grafana API endpoint
+        ds_query_url = f"{full_url}/api/ds/query"
+        current_app.logger.info(f"Trying endpoint: {ds_query_url}")
+        
+        response = requests.post(
+            ds_query_url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+            verify=verify_ssl
+        )
+        
+        # Log response info
+        current_app.logger.info(f"Response status: {response.status_code}")
+        current_app.logger.info(f"Response content type: {response.headers.get('Content-Type', 'unknown')}")
+        
+        # Check if we received HTML instead of JSON (common error case)
+        if response.headers.get('Content-Type', '').startswith('text/html'):
+            current_app.logger.error("Received HTML response instead of JSON")
+            # Include a snippet of the response to help diagnose the issue
+            snippet = response.text[:500] + '...' if len(response.text) > 500 else response.text
+            return jsonify({
+                'success': False,
+                'error': 'Server returned HTML instead of JSON. This usually means a redirect to login page or incorrect URL.',
+                'html_response': snippet
             })
-            
-            # Log the full headers for debugging (without the actual key value)
-            debug_headers = headers.copy()
-            if 'Authorization' in debug_headers:
-                if debug_headers['Authorization'].startswith('Bearer '):
-                    debug_headers['Authorization'] = 'Bearer ***MASKED***'
-                elif debug_headers['Authorization'].startswith('token '):
-                    debug_headers['Authorization'] = 'token ***MASKED***'
-                else:
-                    debug_headers['Authorization'] = '***MASKED***'
-            current_app.logger.info(f"Request headers: {debug_headers}")
-            
-            # Execute the query through the Grafana API
-            current_time = int(time.time())
-            one_hour_ago = current_time - 3600
-            
-            # Simplified payload structure matching expected Grafana API format
-            payload = {
-                'queries': [
-                    {
-                        'refId': 'A',
-                        'datasourceId': 1,  # Default Prometheus datasource
-                        'expr': query,
-                        'instant': True
-                    }
-                ],
-                'from': str(one_hour_ago * 1000),
-                'to': str(current_time * 1000)
-            }
-            
-            current_app.logger.info(f"Request payload: {json.dumps(payload)}")
-            
-            # Disable SSL verification for development
-            verify_ssl = False
-            current_app.logger.info(f"SSL verification: disabled for testing")
-            
-            # First try the ds/query endpoint (Grafana 8+)
-            ds_query_url = f"{full_url}/api/ds/query"
-            current_app.logger.info(f"Trying endpoint: {ds_query_url}")
-            
-            response = requests.post(
-                ds_query_url,
-                headers=headers,
-                json=payload,
-                timeout=30,
-                verify=verify_ssl
-            )
-            
-            # Log response status
-            current_app.logger.info(f"Response status: {response.status_code}")
-            
+        
+        # Try to parse the response as JSON
+        try:
             # If success, return the result
             if response.status_code == 200:
                 response.encoding = 'utf-8'
@@ -335,7 +298,7 @@ def test_grafana_query():
                     'results': result_data
                 })
             
-            # If auth failure, track but try the next method
+            # Handle auth failures
             if response.status_code == 401 or response.status_code == 403:
                 error_text = response.text
                 try:
@@ -343,15 +306,55 @@ def test_grafana_query():
                     error_text = json.dumps(error_json)
                 except:
                     pass
-                auth_errors.append(f"Auth method {auth_header.get('Authorization', 'unknown')[:10]}... failed: {error_text}")
+                
+                current_app.logger.error(f"Authentication failed: {error_text}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Authentication failed: {error_text}'
+                })
             
-        except Exception as e:
-            current_app.logger.error(f"Error with auth method {auth_header}: {str(e)}")
-            auth_errors.append(f"Auth method exception: {str(e)}")
-    
-    # If we get here, all auth methods failed
-    current_app.logger.error("All authentication methods failed")
-    return jsonify({
-        'success': False,
-        'error': f'Authentication failed with all methods. Details: {"; ".join(auth_errors)}'
-    }) 
+            # Handle other errors
+            error_text = response.text[:500] if response.text else f"HTTP {response.status_code}"
+            current_app.logger.error(f"Query failed: {error_text}")
+            return jsonify({
+                'success': False,
+                'error': f'Query failed: {error_text}'
+            })
+            
+        except ValueError as e:
+            # Handle non-JSON responses
+            current_app.logger.error(f"Failed to parse Grafana response: {str(e)}")
+            current_app.logger.error(f"Response content: {response.text[:500]}")
+            
+            # Return specific error for invalid JSON
+            return jsonify({
+                'success': False,
+                'error': f'Unexpected token \'{str(e)}\', "{response.text[:20]}..." is not valid JSON',
+                'html_response': response.text[:500]
+            })
+        
+    except requests.exceptions.SSLError as e:
+        current_app.logger.error(f"SSL Error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'SSL certificate validation failed. Your Grafana server may be using a self-signed certificate.'
+        })
+    except requests.exceptions.ConnectionError as e:
+        current_app.logger.error(f"Grafana connection error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Could not connect to Grafana server. Please check the URL and ensure the server is running. Error: {str(e)}'
+        })
+    except requests.exceptions.Timeout:
+        current_app.logger.error("Request timed out")
+        return jsonify({
+            'success': False,
+            'error': 'Query timed out. The query may be too complex or the server is busy.'
+        })
+    except Exception as e:
+        # Generic error handler for any issues
+        current_app.logger.error(f"Error executing Grafana query: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'An error occurred with the Grafana query: {str(e)}'
+        }) 
