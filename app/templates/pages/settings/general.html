@@ -173,9 +173,13 @@
                                         placeholder="For InfluxDB: 
 SHOW MEASUREMENTS
 SHOW DATABASES
-SELECT * FROM cpu LIMIT 10">SHOW MEASUREMENTS FROM mass_nft</textarea>
+SELECT * FROM cpu LIMIT 10">SHOW DATABASES</textarea>
                                     <p class="mt-2 text-sm text-gray-500">
-                                        Enter a query to test. Try: <code>SHOW MEASUREMENTS FROM mass_nft</code> or <code>SELECT * FROM mass_nft..measurement_name LIMIT 10</code>
+                                        Try these queries in order: 
+                                        1. <code>SHOW DATABASES</code>
+                                        2. <code>USE mass_nft</code> (sets the database context)
+                                        3. <code>SHOW MEASUREMENTS</code> (lists tables in the current database)
+                                        4. <code>SELECT * FROM measurement_name LIMIT 10</code> (replace 'measurement_name' with a table name)
                                     </p>
                                 </div>
                                 <div class="flex justify-end space-x-4">
