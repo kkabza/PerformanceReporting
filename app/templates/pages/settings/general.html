@@ -351,6 +351,15 @@
                                                 <p class="mt-1 text-xs text-gray-500">Enter timestamp or relative time like 'now'</p>
                                             </div>
                                         </div>
+                                        <div class="mt-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Grafana Server URL</label>
+                                            <input type="text" 
+                                                id="csv_grafana_url" 
+                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                placeholder="http://10.0.10.16:3000"
+                                                value="http://10.0.10.16:3000">
+                                            <p class="mt-1 text-xs text-gray-500">Override Grafana URL specifically for CSV export</p>
+                                        </div>
                                         <div class="mt-3 flex justify-end">
                                             <button 
                                                 type="button" 
@@ -1058,13 +1067,16 @@ function exportPanelCsv() {
     // Show loading indicator
     showToast('Exporting CSV data...', 'info');
     
+    // Use the dedicated Grafana URL for CSV export
+    const grafanaUrl = document.getElementById('csv_grafana_url').value.trim() || document.getElementById('grafana_url').value.trim();
+    
     fetch('/settings/grafana/export-csv', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            url: document.getElementById('grafana_url').value.trim(),
+            url: grafanaUrl,
             api_key: document.getElementById('api_key').value.trim(),
             dashboard_uid: dashboardUid,
             panel_id: panelId,
