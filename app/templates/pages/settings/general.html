@@ -245,21 +245,21 @@ SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > n
                                         <div class="mb-4">
                                             <label class="block text-xs font-medium text-gray-600 mb-1">Database</label>
                                             <select id="explorer-database" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                                <option value="mass_nft">mass_nft</option>
+                                                <option value="mass_nft" selected>mass_nft</option>
+                                                <option value="mass_nft_get">mass_nft_get</option>
+                                                <option value="mass_nft_put">mass_nft_put</option>
+                                                <option value="mass-poc">mass-poc</option>
                                             </select>
                                             <button type="button" onclick="loadDatabases()" class="mt-1 text-xs text-blue-600 hover:text-blue-800 cursor-pointer">
                                                 Refresh
                                             </button>
                                         </div>
                                         
-                                        <!-- Connection toggle -->
                                         <div class="mb-4 pb-3 border-b border-gray-200">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" id="use-direct-influxdb" class="sr-only peer" checked>
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                                <span class="ml-3 text-xs font-medium text-gray-700">Direct InfluxDB Connection</span>
-                                            </label>
-                                            <p class="text-xs text-gray-500 mt-1">Toggle between using Grafana or connecting directly to InfluxDB</p>
+                                            <p class="text-xs text-gray-700">
+                                                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                                                Queries are executed through Grafana's API using your Grafana API key.
+                                            </p>
                                         </div>
                                         
                                         <!-- Tree View -->
@@ -297,17 +297,6 @@ SELECT * FROM cpu LIMIT 10">SELECT * FROM mass_nft.autogen.jmeter WHERE time > n
                                         
                                         <!-- Query Builder Form -->
                                         <div class="space-y-4">
-                                            <div>
-                                                <label class="block text-xs font-medium text-gray-600 mb-1">InfluxDB API Endpoint</label>
-                                                <input 
-                                                    type="text"
-                                                    id="influxdb-endpoint"
-                                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                                    placeholder="http://10.0.10.16:8086"
-                                                    value="{{ influxdb_url|default('http://10.0.10.16:8086') }}">
-                                                <p class="text-xs text-gray-500 mt-1">This may be different from your Grafana URL (usually port 8086 for direct InfluxDB access)</p>
-                                            </div>
-                                            
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-600 mb-1">Query</label>
                                                 <textarea 
@@ -1398,81 +1387,50 @@ async function runExplorerQuery() {
 
 // Helper function to run InfluxQL queries via the Grafana API
 async function runInfluxQuery(query) {
-    // Check if we should use direct InfluxDB connection
-    const useDirectInfluxDB = document.getElementById('use-direct-influxdb')?.checked || false;
+    const url = document.getElementById('grafana_url').value;
+    let apiKey = document.getElementById('api_key').value;
+    const database = document.getElementById('explorer-database').value;
     
-    if (useDirectInfluxDB) {
-        // Use direct InfluxDB connection
-        const influxdbUrl = document.getElementById('influxdb-endpoint').value;
+    // If empty, try to use environment variable
+    if (!apiKey || apiKey.trim() === '') {
+        apiKey = "{{ grafana_api_key|default('') }}";
+    }
+    
+    if (!url) {
+        return { success: false, error: 'Please enter Grafana URL' };
+    }
+    
+    if (!apiKey) {
+        return { success: false, error: 'Please enter API Key' };
+    }
+    
+    try {
+        // Use Grafana's DS Query endpoint
+        const dsQueryUrl = `${url}/api/ds/query`;
         
-        if (!influxdbUrl) {
-            return { success: false, error: 'Please enter InfluxDB API URL' };
-        }
+        const payload = {
+            "queries": [
+                {
+                    "refId": "A",
+                    "datasourceId": 1,  // Default datasource
+                    "rawQuery": true,
+                    "query": query,
+                    "database": database  // Include database in the query
+                }
+            ],
+            "from": "now-24h",
+            "to": "now"
+        };
         
-        try {
-            // Call a backend endpoint that proxies to InfluxDB
-            const response = await fetch('/settings/influxdb/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: influxdbUrl,
-                    query: query,
-                    db: document.getElementById('explorer-database').value
-                })
-            });
-            
-            // Check content type of response
-            const contentType = response.headers.get('content-type');
-            
-            if (contentType && contentType.includes('application/json')) {
-                // Parse as JSON if content type is JSON
-                return await response.json();
-            } else {
-                // Handle non-JSON response
-                const responseText = await response.text();
-                return {
-                    success: false,
-                    error: 'Server returned non-JSON response',
-                    html_response: responseText,
-                    status: response.status
-                };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: `Error connecting to InfluxDB: ${error.message}`
-            };
-        }
-    } else {
-        // Use Grafana API
-        const url = document.getElementById('grafana_url').value;
-        let apiKey = document.getElementById('api_key').value;
+        console.log("Running query via Grafana DS Query API:", query);
         
-        // If empty, try to use environment variable
-        if (!apiKey || apiKey.trim() === '') {
-            apiKey = "{{ grafana_api_key|default('') }}";
-        }
-        
-        if (!url) {
-            return { success: false, error: 'Please enter Grafana URL' };
-        }
-        
-        if (!apiKey) {
-            return { success: false, error: 'Please enter API Key' };
-        }
-        
-        const response = await fetch('/settings/grafana/test-query', {
+        const response = await fetch(dsQueryUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify({
-                url: url,
-                api_key: apiKey,
-                query: query
-            })
+            body: JSON.stringify(payload)
         });
         
         // Check content type of response
@@ -1480,7 +1438,13 @@ async function runInfluxQuery(query) {
         
         if (contentType && contentType.includes('application/json')) {
             // Parse as JSON if content type is JSON
-            return await response.json();
+            const responseData = await response.json();
+            
+            // Format response to match our expected structure
+            return {
+                success: true,
+                results: responseData
+            };
         } else {
             // Handle non-JSON response (HTML, text, etc.)
             const responseText = await response.text();
@@ -1491,6 +1455,12 @@ async function runInfluxQuery(query) {
                 status: response.status
             };
         }
+    } catch (error) {
+        console.error("Error executing query:", error);
+        return {
+            success: false,
+            error: `Error executing query: ${error.message}`
+        };
     }
 }
 </script>
