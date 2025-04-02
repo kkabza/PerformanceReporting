@@ -490,8 +490,23 @@ async function testGrafanaQuery() {
             })
         });
         
-        // Parse the response
-        const data = await response.json();
+        // Check content type of response
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            // Parse as JSON if content type is JSON
+            data = await response.json();
+        } else {
+            // Handle non-JSON response (HTML, text, etc.)
+            const responseText = await response.text();
+            data = {
+                success: false,
+                error: 'Server returned non-JSON response',
+                html_response: responseText,
+                status: response.status
+            };
+        }
         
         // Hide loading spinner
         document.getElementById('grafanaLoading').classList.add('hidden');
@@ -530,8 +545,13 @@ async function testGrafanaQuery() {
                 document.getElementById('grafanaResultContainer').classList.remove('hidden');
                 document.getElementById('grafanaResultsContent').innerHTML = 
                     '<div class="bg-red-50 p-4 rounded border border-red-200 text-sm text-red-700 font-mono overflow-auto max-h-96">' +
-                    '<h3 class="font-bold mb-2">HTML Response (This likely means a redirect to login page):</h3>' +
-                    '<pre>' + escapeHtml(data.html_response) + '</pre>' +
+                    '<h3 class="font-bold mb-2">HTML Response (Status ' + data.status + '): This likely means:</h3>' +
+                    '<ul class="list-disc ml-5 mb-3">' +
+                    '<li>Redirect to a login page</li>' + 
+                    '<li>Invalid URL or API endpoint</li>' +
+                    '<li>Server error returned as HTML</li>' +
+                    '</ul>' +
+                    '<pre class="text-xs">' + escapeHtml(data.html_response.substring(0, 1000)) + '...</pre>' +
                     '</div>';
             }
             
